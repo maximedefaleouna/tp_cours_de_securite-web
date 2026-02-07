@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+}
+
+
+model Etudiant {
+  id        String      @id @default(uuid())
+  nom      String
+  prenom   String
+  numeroCarteEtudiant String   @unique
+  email     String   @unique
+  password  String
+  formationId String
+  dateNaissance DateTime
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  
+  Formation Formation @relation(fields: [formationId], references: [id])
+  notes Note[]
+  isDeleted Boolean @default(false)
+}
+
+
+model Administration{
+  id        String      @id @default(uuid())
+  nom      String
+  prenom   String
+  email     String   @unique
+  matricule String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isAdmin Boolean @default(false)
+  createdById String?
+  updatedById String?
+  
+  cours Cours[] @relation("Professeurs")
+
+  formationResponsables FormationResponsable[]
+  isDeleted Boolean @default(false)
+
+  createdBy Administration? @relation("CreatedAdmins", fields: [createdById], references: [id])
+  updatedBy Administration? @relation("UpdatedAdmins", fields: [updatedById], references: [id])
+
+  createdFormations Formation[] @relation("CreatedFormations")
+  updatedFormations Formation[] @relation("UpdatedFormations")
+
+  createdCours Cours[] @relation("CreatedCours")
+  updatedCours Cours[] @relation("UpdatedCours")
+
+  createdNotes Note[] @relation("CreatedNotes")
+  updatedNotes Note[] @relation("UpdatedNotes")
+
+  createdFormationResponsables FormationResponsable[] @relation("CreatedFormationResponsables")
+  updatedFormationResponsables FormationResponsable[] @relation("UpdatedFormationResponsables")
+
+  createdAdmins Administration[] @relation("CreatedAdmins")
+  updatedAdmins Administration[] @relation("UpdatedAdmins")
+
+
+}
+
+model Formation{
+  id        String      @id @default(uuid())
+  nom      String
+  description String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean @default(false)
+
+
+  cours Cours[]
+  formationResponsables FormationResponsable[]
+  etudiants Etudiant[]
+
+
+  createdById String
+  updatedById String
+
+  createdBy  Administration @relation("CreatedFormations", fields: [createdById], references: [id])
+  updatedBy  Administration @relation("UpdatedFormations", fields: [updatedById], references: [id])
+
+  
+
+}
+
+model FormationResponsable{
+  id        String      @id @default(uuid())
+  formationId String
+  responsableId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById   String
+  updatedById   String
+
+  createdBy    Administration @relation("CreatedFormationResponsables", fields: [createdById], references: [id])
+  updatedBy    Administration @relation("UpdatedFormationResponsables", fields: [updatedById], references: [id])
+
+  Formation Formation @relation(fields: [formationId], references: [id])
+  Responsable Administration @relation(fields: [responsableId], references: [id])
+  @@unique([formationId, responsableId])
+
+
+}
+
+model Cours{
+  id        String      @id @default(uuid())
+  nom      String
+  description String
+  formationId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  professeurId String
+  Formation Formation @relation(fields: [formationId], references: [id])
+  professeur  Administration @relation("Professeurs", fields: [professeurId], references: [id])
+  createdById String
+  updatedById String
+  isDeleted Boolean @default(false)
+
+
+  createdBy Administration @relation("CreatedCours", fields: [createdById], references: [id])
+  updatedBy Administration @relation("UpdatedCours", fields: [updatedById], references: [id])
+
+
+  notes Note[]
+}
+
+
+model Note{
+  id        String      @id @default(uuid())
+  etudiantId String
+  coursId String
+  valeur Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean @default(false)
+
+
+  createdById String
+  updatedById String
+
+  
+
+  Etudiant Etudiant @relation(fields: [etudiantId], references: [id])
+  Cours Cours @relation(fields: [coursId], references: [id])
+  @@unique([etudiantId, coursId])
+
+  createdBy Administration @relation("CreatedNotes", fields: [createdById], references: [id])
+  updatedBy Administration @relation("UpdatedNotes", fields: [updatedById], references: [id])
+
+
+}
+
