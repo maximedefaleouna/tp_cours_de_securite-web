@@ -1,4 +1,5 @@
 import express, { json } from "express";
+import { AuthRoutes } from "./modules/auth/auth.routes.js";
 
 class App {
   constructor() {
@@ -14,13 +15,19 @@ class App {
   }
 
   _routes() {
+    // Route racine
     this.app.get("/", (req, res) => {
       res.send("Backend Groupe 2 - TP Sécurité Web");
     });
 
+    // Route health
     this.app.get("/health", (req, res) => {
       res.json({ status: "ok" });
     });
+
+    // Routes Auth
+    const authRoutes = new AuthRoutes();
+    this.app.use("/api/auth", authRoutes.getRouter());
   }
 
   listen() {
