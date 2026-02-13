@@ -1,5 +1,9 @@
 import express, { json } from "express";
 import { AuthRoutes } from "./modules/auth/auth.routes.js";
+import FormationRoutes from "./modules/formations/formation.routes.js";
+import AdministrationRoutes from "./modules/administration/administration.routes.js";
+import CoursRoutes from "./modules/cours/cours.routes.js";
+import NoteRoutes from "./modules/notes/note.routes.js";
 
 class App {
   constructor() {
@@ -28,6 +32,18 @@ class App {
     // Routes Auth
     const authRoutes = new AuthRoutes();
     this.app.use("/api/auth", authRoutes.getRouter());
+
+    const formationRoutes = new FormationRoutes();
+    this.app.use("/api/formation", formationRoutes.getRouter());
+
+    const administrationRoutes = new AdministrationRoutes();
+    this.app.use("/api/administration", administrationRoutes.getRouter());
+
+    const coursRoutes = new CoursRoutes();
+    this.app.use("/api/cours", coursRoutes.getRouter());
+
+    const noteRoutes = new NoteRoutes();
+    this.app.use("/api/notes", noteRoutes.getRouter());
   }
 
   listen() {

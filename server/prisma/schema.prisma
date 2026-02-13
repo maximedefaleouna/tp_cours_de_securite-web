@@ -123,6 +123,8 @@ model Cours{
   nom      String
   description String
   formationId String
+  coefficient  Int
+  semestre     Semestre
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   professeurId String
@@ -138,6 +140,11 @@ model Cours{
 
 
   notes Note[]
+}
+
+enum Semestre {
+  S1
+  S2
 }
 
 
