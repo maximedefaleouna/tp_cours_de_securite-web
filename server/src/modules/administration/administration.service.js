@@ -1,5 +1,6 @@
 import { AppError } from "../../middlewares/error.middleware.js";
 import { PasswordService } from "../../security/password.js";
+import emailService from "../../utils/email.service.js";
 import crypto from "crypto";
 
 // Utilitaire pour générer matricule aléatoire
@@ -37,16 +38,29 @@ export default class AdministrationService {
 
     const matricule = await this.generateUniqueMatricule();
 
-    const defaultPassword = "123456"; // mot de passe par défaut
-    const hashedPassword = await this.passwordService.hash(defaultPassword);
+    // Generate a random temporary password
+    const tempPassword = crypto.randomBytes(4).toString("hex").toUpperCase();
+    const hashedPassword = await this.passwordService.hash(tempPassword);
 
-    return this.repo.create({
+    const personnel = await this.repo.create({
       ...data,
       matricule,
       password: hashedPassword,
       createdById: currentUserId,
       updatedById: currentUserId,
     });
+
+    // Send email with credentials
+    await emailService.sendPersonnelCredentials(
+      data.email,
+      data.prenom,
+      data.nom,
+      matricule,
+      tempPassword,
+      data.isAdmin || false
+    );
+
+    return personnel;
   }
 
   async getAll() {

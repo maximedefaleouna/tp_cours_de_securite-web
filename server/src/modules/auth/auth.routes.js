@@ -2,6 +2,7 @@ import { Router } from "express";
 import { AuthController } from "./auth.controller.js";
 import { AuthSchemas } from "./auth.schema.js";
 import { ValidationService } from "../../middlewares/validation.middleware.js";
+import { authLimiter } from "../../security/rateLimit.js";
 
 export class AuthRoutes {
   constructor() {
@@ -78,6 +79,7 @@ export class AuthRoutes {
      */
     this.router.post(
       "/admin/login",
+      authLimiter,
       adminLoginValidator.validateRequest,
       this.authController.loginAdmin,
     );

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { professeurs } from '@/data/mock';
-import { Search, Mail, Plus, BookOpen, Phone } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Mail, Plus, BookOpen } from 'lucide-react';
+import { usePersonnelStore } from '@/stores/personnel.store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,11 +18,21 @@ const ProfesseursPage = () => {
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const { personnel, fetchPersonnel } = usePersonnelStore();
+
+  useEffect(() => {
+    fetchPersonnel();
+  }, [fetchPersonnel]);
+
+  // Filter only non-admin personnel (professors)
+  const professeurs = personnel.filter(p => !p.isAdmin);
+
   const filtered = professeurs.filter(
     (p) =>
       p.nom.toLowerCase().includes(search.toLowerCase()) ||
       p.prenom.toLowerCase().includes(search.toLowerCase()) ||
-      p.specialite.toLowerCase().includes(search.toLowerCase())
+      p.email.toLowerCase().includes(search.toLowerCase()) ||
+      p.matricule.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -102,17 +112,12 @@ const ProfesseursPage = () => {
                       <span className="truncate">{p.email}</span>
                     </p>
                   </div>
-                  <Badge className="bg-accent/10 text-accent border-accent/20 font-medium">
-                    {p.specialite}
+                  <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
+                    Professeur
                   </Badge>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {p.formationNoms.map((fn) => (
-                      <Badge key={fn} variant="secondary" className="text-xs gap-1">
-                        <BookOpen className="w-3 h-3" />
-                        {fn}
-                      </Badge>
-                    ))}
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Matricule: {p.matricule}
+                  </p>
                 </div>
               </div>
             </CardContent>

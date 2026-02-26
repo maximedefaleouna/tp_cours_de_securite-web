@@ -13,7 +13,7 @@ export default class NoteRepository {
             nom: true,
             prenom: true,
             email: true,
-            matricule: true,
+            numeroCarteEtudiant: true,
           },
         },
         Cours: {
@@ -45,7 +45,7 @@ export default class NoteRepository {
             nom: true,
             prenom: true,
             email: true,
-            matricule: true,
+            numeroCarteEtudiant: true,
           },
         },
         Cours: {
@@ -77,7 +77,7 @@ export default class NoteRepository {
             nom: true,
             prenom: true,
             email: true,
-            matricule: true,
+            numeroCarteEtudiant: true,
           },
         },
         Cours: {
@@ -110,7 +110,7 @@ export default class NoteRepository {
             nom: true,
             prenom: true,
             email: true,
-            matricule: true,
+            numeroCarteEtudiant: true,
           },
         },
         Cours: {
@@ -149,7 +149,7 @@ export default class NoteRepository {
             nom: true,
             prenom: true,
             email: true,
-            matricule: true,
+            numeroCarteEtudiant: true,
           },
         },
         Cours: {

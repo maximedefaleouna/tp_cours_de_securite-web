@@ -1,12 +1,14 @@
 import express, { json } from "express";
 import redisClient from "./config/redis.js";
+import { corsMiddleware } from "./security/cors.js";
+import { apiLimiter, authLimiter } from "./security/rateLimit.js";
 import { AuthRoutes } from "./modules/auth/auth.routes.js";
 import FormationRoutes from "./modules/formations/formation.routes.js";
 import AdministrationRoutes from "./modules/administration/administration.routes.js";
 import CoursRoutes from "./modules/cours/cours.routes.js";
 import NoteRoutes from "./modules/notes/note.routes.js";
 import EtudiantRoutes from "./modules/etudiants/etudiant.routes.js";
-import { swaggerSpec, swaggerUi } from "./config/swagger.js";         //swagger
+import { swaggerSpec, swaggerUi } from "./config/swagger.js";
 
 class App {
   constructor() {
@@ -19,6 +21,12 @@ class App {
   }
 
   _middlewares() {
+    // CORS configuration from security folder
+    this.app.use(corsMiddleware);
+
+    // General rate limiting
+    this.app.use(apiLimiter);
+
     this.app.use(json());
   }
 

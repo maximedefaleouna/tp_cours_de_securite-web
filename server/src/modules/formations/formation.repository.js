@@ -35,8 +35,21 @@ export default class FormationRepository {
       include: {
         cours: true,
         formationResponsables: {
-          // Remove unknown field 'responsable' and just include as array of objects
-          // To stay consistent with other calls, you might want to use an empty include or include nothing extra.
+          select: {
+            id: true,
+            responsableId: true,
+            formationId: true,
+            Responsable: {
+              select: {
+                id: true,
+                nom: true,
+                prenom: true,
+                email: true,
+                matricule: true,
+                isAdmin: true,
+              },
+            },
+          },
         },
         etudiants: true,
       },
@@ -49,7 +62,21 @@ export default class FormationRepository {
       include: {
         cours: true,
         formationResponsables: {
-          include: { responsable: true },
+          select: {
+            id: true,
+            responsableId: true,
+            formationId: true,
+            Responsable: {
+              select: {
+                id: true,
+                nom: true,
+                prenom: true,
+                email: true,
+                matricule: true,
+                isAdmin: true,
+              },
+            },
+          },
         },
         etudiants: true,
       },
@@ -69,6 +96,8 @@ export default class FormationRepository {
         deleteMany: {}, // remove any existing responsible
         create: {
           responsableId: data.responsableId,
+          createdById: data.updatedById,
+          updatedById: data.updatedById,
         },
       };
     }
@@ -77,9 +106,25 @@ export default class FormationRepository {
       where: { id },
       data: updateData,
       include: {
+        cours: true,
         formationResponsables: {
-          include: { responsable: true },
+          select: {
+            id: true,
+            responsableId: true,
+            formationId: true,
+            Responsable: {
+              select: {
+                id: true,
+                nom: true,
+                prenom: true,
+                email: true,
+                matricule: true,
+                isAdmin: true,
+              },
+            },
+          },
         },
+        etudiants: true,
       },
     });
   }

@@ -1,6 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { notes, cours } from '@/data/mock';
 import { Download, Printer } from 'lucide-react';
+import { useNotesStore } from '@/stores/notes.store';
+import { useCoursStore } from '@/stores/cours.store';
+import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,16 +11,24 @@ import ukLogo from '@/assets/uk-logo-full.png';
 
 const RelevePage = () => {
   const { user } = useAuth();
-  const mesNotes = notes.filter((n) => n.etudiantId === user?.id && n.validee);
+  const { notes, fetchNotes } = useNotesStore();
+  const { cours, fetchCours } = useCoursStore();
+
+  useEffect(() => {
+    fetchNotes();
+    fetchCours();
+  }, [fetchNotes, fetchCours]);
+
+  const mesNotes = notes.filter((n) => n.etudiantId === user?.id);
 
   const moyenne =
     mesNotes.length > 0
-      ? (mesNotes.reduce((acc, n) => acc + n.note, 0) / mesNotes.length).toFixed(2)
+      ? (mesNotes.reduce((acc, n) => acc + n.valeur, 0) / mesNotes.length).toFixed(2)
       : '—';
 
-  const totalCredits = mesNotes.reduce((acc, n) => {
+  const totalCoefficients = mesNotes.reduce((acc, n) => {
     const c = cours.find((co) => co.id === n.coursId);
-    return acc + (c?.credits || 0);
+    return acc + (c?.coefficient || 0);
   }, 0);
 
   return (
@@ -70,7 +80,7 @@ const RelevePage = () => {
             </div>
             <div>
               <span className="text-muted-foreground">Matricule :</span>{' '}
-              <span className="font-semibold text-foreground">UK2024-001</span>
+              <span className="font-semibold text-foreground">{user?.matricule || 'N/A'}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Année :</span>{' '}
@@ -85,8 +95,7 @@ const RelevePage = () => {
             <thead>
               <tr className="bg-secondary/50">
                 <th className="text-left p-3 font-semibold text-foreground rounded-l-lg">Matière</th>
-                <th className="text-center p-3 font-semibold text-foreground">Code</th>
-                <th className="text-center p-3 font-semibold text-foreground">Crédits</th>
+                <th className="text-center p-3 font-semibold text-foreground">Coefficient</th>
                 <th className="text-center p-3 font-semibold text-foreground rounded-r-lg">Note /20</th>
               </tr>
             </thead>
@@ -95,14 +104,11 @@ const RelevePage = () => {
                 const c = cours.find((co) => co.id === n.coursId);
                 return (
                   <tr key={n.id} className="border-b border-border last:border-0">
-                    <td className="p-3 text-foreground">{n.coursNom}</td>
+                    <td className="p-3 text-foreground">{n.Cours?.nom || c?.nom || 'N/A'}</td>
+                    <td className="p-3 text-center text-muted-foreground">{c?.coefficient || '—'}</td>
                     <td className="p-3 text-center">
-                      <Badge variant="secondary" className="font-mono text-xs">{c?.code}</Badge>
-                    </td>
-                    <td className="p-3 text-center text-muted-foreground">{c?.credits}</td>
-                    <td className="p-3 text-center">
-                      <span className={`font-bold ${n.note >= 10 ? 'text-success' : 'text-destructive'}`}>
-                        {n.note}
+                      <span className={`font-bold ${n.valeur >= 10 ? 'text-success' : 'text-destructive'}`}>
+                        {n.valeur}
                       </span>
                     </td>
                   </tr>
@@ -120,8 +126,8 @@ const RelevePage = () => {
               <p className="text-2xl font-display font-bold">{moyenne}/20</p>
             </div>
             <div className="text-right">
-              <p className="text-sm opacity-80">Crédits obtenus</p>
-              <p className="text-2xl font-display font-bold">{totalCredits}</p>
+              <p className="text-sm opacity-80">Coefficients</p>
+              <p className="text-2xl font-display font-bold">{totalCoefficients}</p>
             </div>
           </div>
 

@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import DashboardPage from "./pages/DashboardPage";
+
 import FormationsPage from "./pages/FormationsPage";
 import EtudiantsPage from "./pages/EtudiantsPage";
-import ProfesseursPage from "./pages/ProfesseursPage";
+import PersonnelPage from "./pages/PersonnelPage";
 import SaisieNotesPage from "./pages/SaisieNotesPage";
 import NotesPage from "./pages/NotesPage";
 import MesNotesPage from "./pages/MesNotesPage";
@@ -19,6 +20,7 @@ import ProfilPage from "./pages/ProfilPage";
 import CoursPage from "./pages/CoursPage";
 import DashboardLayout from "./components/DashboardLayout";
 import NotFound from "./pages/NotFound";
+import DashboardPage from "./pages/DashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -38,12 +40,13 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Navigate to="/auth" replace />} />
     <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
+    <Route path="/admin/login" element={<PublicRoute><AdminLoginPage /></PublicRoute>} />
     <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
     <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="/dashboard/formations" element={<ProtectedRoute><FormationsPage /></ProtectedRoute>} />
     <Route path="/dashboard/etudiants" element={<ProtectedRoute><EtudiantsPage /></ProtectedRoute>} />
-    <Route path="/dashboard/professeurs" element={<ProtectedRoute><ProfesseursPage /></ProtectedRoute>} />
+    <Route path="/dashboard/personnel" element={<ProtectedRoute><PersonnelPage /></ProtectedRoute>} />
     <Route path="/dashboard/cours" element={<ProtectedRoute><CoursPage /></ProtectedRoute>} />
     <Route path="/dashboard/saisie-notes" element={<ProtectedRoute><SaisieNotesPage /></ProtectedRoute>} />
     <Route path="/dashboard/notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />

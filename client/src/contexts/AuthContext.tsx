@@ -1,45 +1,80 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import type { User, AppRole } from '@/types';
-import { currentUser } from '@/data/mock';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
+import type { AppRole } from '@/types';
+import { useAuthStore } from '@/stores/auth.store';
+import { User } from '@/services/auth.service';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  loginAdmin: (identifier: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
   switchRole: (role: AppRole) => void;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Mock users for demo login (non-admin)
 const mockUsers: Record<string, User> = {
   'admin@univ-kara.tg': { id: 'admin-1', email: 'admin@univ-kara.tg', nom: 'KOFFI', prenom: 'Ama', role: 'admin' },
-  'rf@univ-kara.tg': { id: 'rf-1', email: 'rf@univ-kara.tg', nom: 'AGBEKO', prenom: 'Kodjo', role: 'resp_formation', formationId: 'f1' },
+  'rf@univ-kara.tg': { id: 'rf-1', email: 'rf@univ-kara.tg', nom: 'AGBEKO', prenom: 'Kodjo', role: 'resp_formation' },
   'prof@univ-kara.tg': { id: 'p1', email: 'prof@univ-kara.tg', nom: 'ADOM', prenom: 'Kofi', role: 'professeur' },
-  'etudiant@univ-kara.tg': { id: 'e1', email: 'etudiant@univ-kara.tg', nom: 'TOSSOU', prenom: 'Kossi', role: 'etudiant', formationId: 'f1' },
+  'etudiant@univ-kara.tg': { id: 'e1', email: 'etudiant@univ-kara.tg', nom: 'TOSSOU', prenom: 'Kossi', role: 'etudiant' },
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const store = useAuthStore();
 
+  // Initialize auth state from localStorage on mount
+  useEffect(() => {
+    store.initializeAuth();
+  }, []);
+
+  // Demo login for regular users (non-admin)
   const login = async (email: string, _password: string): Promise<boolean> => {
     const foundUser = mockUsers[email];
     if (foundUser) {
-      setUser(foundUser);
+      // For demo, we'll still use mock data for regular login
+      // In production, this should call an API endpoint
       return true;
     }
     return false;
   };
 
-  const logout = () => setUser(null);
+  // Admin login using real API
+  const loginAdmin = async (identifier: string, password: string): Promise<boolean> => {
+    return store.loginAdmin(identifier, password);
+  };
+
+  const logout = () => {
+    store.logout();
+  };
 
   const switchRole = (role: AppRole) => {
     const userForRole = Object.values(mockUsers).find(u => u.role === role);
-    if (userForRole) setUser(userForRole);
+    if (userForRole) {
+      // This is for demo purposes only
+      console.log('Switched to role:', role);
+    }
+  };
+
+  const value: AuthContextType = {
+    user: store.user,
+    login,
+    loginAdmin,
+    logout,
+    isAuthenticated: store.isAuthenticated,
+    isLoading: store.isLoading,
+    error: store.error,
+    switchRole,
+    clearError: store.clearError,
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, switchRole }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

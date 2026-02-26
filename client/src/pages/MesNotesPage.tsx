@@ -1,6 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { notes, cours } from '@/data/mock';
 import { FileText, Award, CheckCircle, XCircle } from 'lucide-react';
+import { useNotesStore } from '@/stores/notes.store';
+import { useCoursStore } from '@/stores/cours.store';
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,37 +16,43 @@ import {
 
 const MesNotesPage = () => {
   const { user } = useAuth();
+  const { notes, fetchNotes } = useNotesStore();
+  const { cours, fetchCours } = useCoursStore();
+
+  useEffect(() => {
+    fetchNotes();
+    fetchCours();
+  }, [fetchNotes, fetchCours]);
+
   const mesNotes = notes.filter((n) => n.etudiantId === user?.id);
 
   const moyenne =
     mesNotes.length > 0
-      ? (mesNotes.reduce((acc, n) => acc + n.note, 0) / mesNotes.length).toFixed(2)
+      ? (mesNotes.reduce((acc, n) => acc + n.valeur, 0) / mesNotes.length).toFixed(2)
       : '—';
 
-  const totalCredits = mesNotes.reduce((acc, n) => {
+  const totalCoefficients = mesNotes.reduce((acc, n) => {
     const c = cours.find((co) => co.id === n.coursId);
-    return acc + (c?.credits || 0);
+    return acc + (c?.coefficient || 0);
   }, 0);
 
-  const creditsValides = mesNotes
-    .filter((n) => n.note >= 10)
+  const coefficientsValides = mesNotes
+    .filter((n) => n.valeur >= 10)
     .reduce((acc, n) => {
       const c = cours.find((co) => co.id === n.coursId);
-      return acc + (c?.credits || 0);
+      return acc + (c?.coefficient || 0);
     }, 0);
 
-  // Group notes by semester
-  const notesBySemestre: Record<number, typeof mesNotes> = {};
+  // Group notes by semester (S1 or S2)
+  const notesBySemestre: Record<string, typeof mesNotes> = {};
   mesNotes.forEach((n) => {
     const c = cours.find((co) => co.id === n.coursId);
-    const sem = c?.semestre || 0;
+    const sem = c?.semestre || 'S1';
     if (!notesBySemestre[sem]) notesBySemestre[sem] = [];
     notesBySemestre[sem].push(n);
   });
 
-  const semestres = Object.keys(notesBySemestre)
-    .map(Number)
-    .sort((a, b) => a - b);
+  const semestres = Object.keys(notesBySemestre).sort();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -71,8 +79,8 @@ const MesNotesPage = () => {
               <FileText className="w-6 h-6 text-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Crédits Obtenus</p>
-              <p className="text-2xl font-display font-bold text-foreground">{creditsValides}/{totalCredits}</p>
+              <p className="text-sm text-muted-foreground">Coefficients Obtenus</p>
+              <p className="text-2xl font-display font-bold text-foreground">{coefficientsValides}/{totalCoefficients}</p>
             </div>
           </CardContent>
         </Card>
@@ -84,7 +92,7 @@ const MesNotesPage = () => {
             <div>
               <p className="text-sm text-muted-foreground">Matières Validées</p>
               <p className="text-2xl font-display font-bold text-foreground">
-                {mesNotes.filter((n) => n.note >= 10).length}/{mesNotes.length}
+                {mesNotes.filter((n) => n.valeur >= 10).length}/{mesNotes.length}
               </p>
             </div>
           </CardContent>
@@ -106,8 +114,7 @@ const MesNotesPage = () => {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-semibold">Semestre</TableHead>
                   <TableHead className="font-semibold">Matière</TableHead>
-                  <TableHead className="font-semibold">Code</TableHead>
-                  <TableHead className="text-center font-semibold">Crédit</TableHead>
+                  <TableHead className="text-center font-semibold">Coefficient</TableHead>
                   <TableHead className="text-center font-semibold">Note / 20</TableHead>
                   <TableHead className="text-center font-semibold">Statut</TableHead>
                 </TableRow>
@@ -115,21 +122,21 @@ const MesNotesPage = () => {
               <TableBody>
                 {semestres.map((sem) => {
                   const semNotes = notesBySemestre[sem];
-                  const semMoyenne = (semNotes.reduce((a, n) => a + n.note, 0) / semNotes.length).toFixed(2);
-                  const semCredits = semNotes.reduce((a, n) => {
+                  const semMoyenne = (semNotes.reduce((a, n) => a + n.valeur, 0) / semNotes.length).toFixed(2);
+                  const semCoefficients = semNotes.reduce((a, n) => {
                     const c = cours.find((co) => co.id === n.coursId);
-                    return a + (c?.credits || 0);
+                    return a + (c?.coefficient || 0);
                   }, 0);
-                  const semCreditsValides = semNotes.filter(n => n.note >= 10).reduce((a, n) => {
+                  const semCoefficientsValides = semNotes.filter(n => n.valeur >= 10).reduce((a, n) => {
                     const c = cours.find((co) => co.id === n.coursId);
-                    return a + (c?.credits || 0);
+                    return a + (c?.coefficient || 0);
                   }, 0);
 
                   return (
                     <>
                       {semNotes.map((n, idx) => {
                         const c = cours.find((co) => co.id === n.coursId);
-                        const passed = n.note >= 10;
+                        const passed = n.valeur >= 10;
                         return (
                           <TableRow key={n.id} className={!passed ? 'bg-destructive/5' : ''}>
                             {idx === 0 && (
@@ -137,17 +144,14 @@ const MesNotesPage = () => {
                                 rowSpan={semNotes.length}
                                 className="font-display font-bold text-base text-primary align-middle border-r border-border bg-muted/30"
                               >
-                                S{sem}
+                                {sem}
                               </TableCell>
                             )}
-                            <TableCell className="font-medium text-foreground">{n.coursNom}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className="font-mono text-xs">{c?.code || '—'}</Badge>
-                            </TableCell>
-                            <TableCell className="text-center text-muted-foreground">{c?.credits || '—'}</TableCell>
+                            <TableCell className="font-medium text-foreground">{n.Cours?.nom || c?.nom || 'N/A'}</TableCell>
+                            <TableCell className="text-center text-muted-foreground">{c?.coefficient || '—'}</TableCell>
                             <TableCell className="text-center">
                               <span className={`text-base font-bold ${passed ? 'text-success' : 'text-destructive'}`}>
-                                {n.note}
+                                {n.valeur}
                               </span>
                             </TableCell>
                             <TableCell className="text-center">
@@ -166,17 +170,17 @@ const MesNotesPage = () => {
                       })}
                       {/* Semester summary row */}
                       <TableRow key={`summary-${sem}`} className="bg-muted/60 border-b-2 border-border">
-                        <TableCell colSpan={3} className="font-semibold text-foreground text-right">
-                          Moyenne S{sem}  :  <span className="text-primary font-bold">{semMoyenne}/20</span>
+                        <TableCell colSpan={2} className="font-semibold text-foreground text-right">
+                          Moyenne {sem}  :  <span className="text-primary font-bold">{semMoyenne}/20</span>
                         </TableCell>
                         <TableCell className="text-center font-semibold text-foreground">
-                          {semCreditsValides}/{semCredits}
+                          {semCoefficientsValides}/{semCoefficients}
                         </TableCell>
                         <TableCell colSpan={2} className="text-center text-sm text-muted-foreground">
-                          {semCreditsValides === semCredits ? (
+                          {semCoefficientsValides === semCoefficients ? (
                             <Badge className="bg-success/15 text-success">Semestre validé</Badge>
                           ) : (
-                            <Badge variant="secondary">Crédits manquants</Badge>
+                            <Badge variant="secondary">Coefficients manquants</Badge>
                           )}
                         </TableCell>
                       </TableRow>

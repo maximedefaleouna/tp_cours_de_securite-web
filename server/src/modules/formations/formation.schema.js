@@ -20,6 +20,7 @@ export default class FormationSchema {
         .string()
         .uuid({ message: "ResponsableId requis au format UUID" })
         .optional(),
+      updatedById: z.string().uuid().optional(),
     });
   }
 

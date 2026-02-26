@@ -3,6 +3,8 @@ import { PasswordService } from "../../security/password.js";
 import { JwtService } from "../../security/jwt.js";
 import redisClient from "../../config/redis.js";
 import EtudiantRepository from "./etudiant.repository.js";
+import emailService from "../../utils/email.service.js";
+import crypto from "crypto";
 
 export default class EtudiantService {
   constructor() {
@@ -76,7 +78,8 @@ export default class EtudiantService {
       throw new AppError("Erreur lors de l'enregistrement temporaire", 500);
     }
 
-    // L'envoi réel de l'OTP par email doit être ajouté ici si ce n'est pas déjà fait ailleurs
+    // Send OTP via email
+    await emailService.sendOTP(data.email, data.prenom, data.nom, otp);
 
     return {
       message: "OTP envoyé à votre email",
@@ -141,52 +144,20 @@ export default class EtudiantService {
 
   // CRUD operations for Etudiant
 
-  // Create a new etudiant (mot de passe par défaut : 123456)
+  // Create a new etudiant (mot de passe généré aléatoirement)
   async createEtudiant(data) {
     // Vérifie si un étudiant existe déjà avec cet email ou numéro de carte
     const existingByEmail = await this.repo.findByEmail(data.email);
     if (existingByEmail) {
       throw new AppError("Un étudiant avec cet email existe déjà", 400);
     }
-    // Génère un numéro de carte aléatoire (8 chiffres)
-    function genererNumeroCarte() {
-      return Math.floor(10000000 + Math.random() * 90000000).toString();
-    }
-    // Si aucun numéro fourni ou déjà existant, en générer un unique
-    let numeroCarte;
-    if (data.numeroCarteEtudiant) {
-      const existingByNumero = await this.repo.findByNumero(
-        data.numeroCarteEtudiant,
-      );
-      if (existingByNumero) {
-        throw new AppError(
-          "Un étudiant avec ce numéro de carte existe déjà",
-          400,
-        );
-      }
-      numeroCarte = data.numeroCarteEtudiant;
-    } else {
-      let tries = 0;
-      let existe = true;
-      // Boucle pour garantir unicité (évite collision)
-      while (existe && tries < 10) {
-        numeroCarte = genererNumeroCarte();
-        // eslint-disable-next-line no-await-in-loop
-        existe = await this.repo.findByNumero(numeroCarte);
-        tries += 1;
-      }
-      if (existe) {
-        throw new AppError(
-          "Impossible de générer un numéro de carte unique. Réessayez.",
-          500,
-        );
-      }
-      data.numeroCarteEtudiant = numeroCarte;
-    }
+    // Génère un numéro de carte étudiant unique
+    const numeroCarte = await this.generateNumeroCarte();
+    data.numeroCarteEtudiant = numeroCarte;
 
-    // Si aucun mot de passe fourni, utiliser "123456" par défaut
-    const motDePasse = data.password ? data.password : "123456";
-    data.password = await this.passwordService.hash(motDePasse);
+    // Generate a random temporary password
+    const tempPassword = crypto.randomBytes(4).toString("hex").toUpperCase();
+    data.password = await this.passwordService.hash(tempPassword);
 
     // Vérifier et reformater la date de naissance si elle est présente
     if (data.dateNaissance) {
@@ -220,6 +191,16 @@ export default class EtudiantService {
     }
 
     const etudiant = await this.repo.create(data);
+
+    // Send email with credentials
+    await emailService.sendStudentCredentials(
+      data.email,
+      data.prenom,
+      data.nom,
+      numeroCarte,
+      tempPassword
+    );
+
     return etudiant;
   }
 

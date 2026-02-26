@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GraduationCap, UserPlus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formations } from "@/data/mock";
+import { useFormationStore } from "@/stores/formation.store";
 
 import logo from "@/assets/uk-logo-full.png";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { formations, fetchFormations } = useFormationStore();
+
+  useEffect(() => {
+    fetchFormations();
+  }, [fetchFormations]);
+
   const [formData, setFormData] = useState({
     nom: "",
     prenom: "",
@@ -172,12 +178,7 @@ const RegisterPage = () => {
               <SelectContent>
                 {formations.map((f) => (
                   <SelectItem key={f.id} value={f.id}>
-                    <div>
-                      <span className="font-medium">{f.nom}</span>
-                      <span className="text-muted-foreground ml-2 text-xs">
-                        — {f.departement}
-                      </span>
-                    </div>
+                    <span className="font-medium">{f.nom}</span>
                   </SelectItem>
                 ))}
               </SelectContent>

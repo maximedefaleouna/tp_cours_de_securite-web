@@ -7,65 +7,99 @@ export interface User {
   prenom: string;
   role: AppRole;
   formationId?: string;
+  matricule?: string;
   avatar?: string;
 }
 
+// Formation from API
 export interface Formation {
   id: string;
   nom: string;
-  departement: string;
   description: string;
-  responsableId?: string;
-  responsableNom?: string;
-  nbEtudiants: number;
-  nbProfesseurs: number;
+  createdAt?: string;
+  updatedAt?: string;
+  isDeleted?: boolean;
+  // Relations
+  cours?: Cours[];
+  formationResponsables?: FormationResponsable[];
+  etudiants?: Etudiant[];
 }
 
+export interface FormationResponsable {
+  id: string;
+  formationId: string;
+  responsableId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  Responsable?: Personnel;
+}
+
+// Cours from API
 export interface Cours {
   id: string;
   nom: string;
-  code: string;
+  description: string;
   formationId: string;
-  formationNom: string;
   professeurId: string;
-  professeurNom: string;
-  credits: number;
-  semestre: number;
+  coefficient: number;
+  semestre: 'S1' | 'S2';
+  createdAt?: string;
+  updatedAt?: string;
+  isDeleted?: boolean;
+  // Relations
+  Formation?: Formation;
+  professeur?: Personnel;
+  notes?: Note[];
 }
 
+// Note from API
 export interface Note {
   id: string;
   etudiantId: string;
-  etudiantNom: string;
   coursId: string;
-  coursNom: string;
-  note: number;
-  scanUrl?: string;
-  scanFilename?: string;
-  validee: boolean;
-  dateCreation: string;
-  dateModification?: string;
+  valeur: number;
+  documentUrl?: string;
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  // Relations
+  Etudiant?: Etudiant;
+  Cours?: Cours;
+  createdBy?: Personnel;
+  updatedBy?: Personnel;
 }
 
+// Etudiant from API
 export interface Etudiant {
   id: string;
   nom: string;
   prenom: string;
   email: string;
-  matricule: string;
+  numeroCarteEtudiant: string;
   formationId: string;
-  formationNom: string;
-  dateInscription: string;
+  dateNaissance?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isDeleted?: boolean;
+  // Relations
+  Formation?: Formation;
+  notes?: Note[];
 }
 
-export interface Professeur {
+// Personnel/Administration from API
+export interface Personnel {
   id: string;
   nom: string;
   prenom: string;
   email: string;
-  specialite: string;
-  formations: string[];
-  formationNoms: string[];
+  matricule: string;
+  isAdmin: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  isDeleted?: boolean;
+  // Relations
+  cours?: Cours[];
+  formationResponsables?: FormationResponsable[];
 }
 
 export interface StatsData {

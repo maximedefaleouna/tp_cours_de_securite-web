@@ -80,6 +80,7 @@ export default class FormationService {
         throw new AppError("Échec de la mise à jour de la formation", 404);
       return updated;
     } catch (err) {
+      console.error(err);
       throw new AppError(
         err?.message || "Erreur lors de la mise à jour de la formation",
         500,
@@ -93,7 +94,10 @@ export default class FormationService {
    * @param {string} updatedById
    */
   async deleteFormation(id, updatedById) {
-    await this.getFormationById(id); // vérification existence
+    const formation = await this.repo.findById(id);
+    if (!formation) {
+      throw new AppError("Formation non trouvée", 404);
+    }
     if (!updatedById)
       throw new AppError("updatedById est requis pour la suppression", 400);
     try {
@@ -102,6 +106,7 @@ export default class FormationService {
         throw new AppError("Échec de la suppression de la formation", 404);
       return deleted;
     } catch (err) {
+      console.log(err)
       throw new AppError(
         err?.message || "Erreur lors de la suppression de la formation",
         500,

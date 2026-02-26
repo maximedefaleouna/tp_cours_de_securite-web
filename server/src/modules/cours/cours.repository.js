@@ -4,7 +4,25 @@ export default class CoursRepository {
   }
 
   async create(data) {
-    return this.prisma.cours.create({ data });
+    return this.prisma.cours.create({
+      data,
+      include: {
+        Formation: true,
+        professeur: {
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            matricule: true,
+            isAdmin: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        notes: true,
+      },
+    });
   }
 
   async findAll() {

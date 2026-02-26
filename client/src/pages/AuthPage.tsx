@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { GraduationCap, LogIn, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, LogIn, Eye, EyeOff, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -198,16 +198,27 @@ const AuthPage = () => {
             </div>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              Étudiant ?{" "}
+          <div className="space-y-3">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Étudiant ?{" "}
+                <a
+                  href="/register"
+                  className="text-accent font-semibold hover:underline"
+                >
+                  Créer un compte
+                </a>
+              </p>
+            </div>
+            <div className="text-center pt-3 border-t border-border">
               <a
-                href="/register"
-                className="text-accent font-semibold hover:underline"
+                href="/admin/login"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Créer un compte
+                <Shield className="w-4 h-4" />
+                <span>Espace Administration</span>
               </a>
-            </p>
+            </div>
           </div>
         </div>
       </div>

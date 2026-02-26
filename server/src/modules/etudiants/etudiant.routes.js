@@ -2,6 +2,7 @@ import express from "express";
 import EtudiantController from "./etudiant.controller.js";
 import EtudiantSchema from "./etudiant.schema.js";
 import { ValidationService } from "../../middlewares/validation.middleware.js";
+import { authLimiter } from "../../security/rateLimit.js";
 
 /**
  * @swagger
@@ -545,7 +546,7 @@ export default class EtudiantRoutes {
      *                   type: string
      *                   example: "Mot de passe ou login incorrect"
      */
-    this.router.post("/login", this.validateLogin, this.controller.login);
+    this.router.post("/login", authLimiter, this.validateLogin, this.controller.login);
   }
 
   getRouter() {

@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
-import { etudiants, cours } from '@/data/mock';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, FileCheck, AlertCircle } from 'lucide-react';
+import { useEtudiantStore } from '@/stores/etudiant.store';
+import { useCoursStore } from '@/stores/cours.store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,8 +24,16 @@ const SaisieNotesPage = () => {
   const [scanFile, setScanFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Prof courses (mock: first prof's courses)
-  const mesCours = cours.filter((c) => c.professeurId === 'p1');
+  const { etudiants, fetchEtudiants } = useEtudiantStore();
+  const { cours, fetchCours } = useCoursStore();
+
+  useEffect(() => {
+    fetchEtudiants();
+    fetchCours();
+  }, [fetchEtudiants, fetchCours]);
+
+  // Prof courses - empty for now until we have professor-specific API
+  const mesCours: typeof cours = [];
   const etudiantsFiltered = selectedCours
     ? etudiants.filter((e) => {
         const c = cours.find((co) => co.id === selectedCours);
@@ -104,9 +113,9 @@ const SaisieNotesPage = () => {
                   <SelectValue placeholder="Sélectionnez un cours" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mesCours.map((c) => (
+                  {cours.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.code} — {c.nom}
+                      {c.nom} ({c.semestre})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -123,7 +132,7 @@ const SaisieNotesPage = () => {
                   <SelectContent>
                     {etudiantsFiltered.map((e) => (
                       <SelectItem key={e.id} value={e.id}>
-                        {e.matricule} — {e.nom} {e.prenom}
+                        {e.numeroCarteEtudiant} — {e.nom} {e.prenom}
                       </SelectItem>
                     ))}
                   </SelectContent>

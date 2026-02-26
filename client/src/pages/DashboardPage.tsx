@@ -1,5 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { stats, formations, notes, etudiants } from '@/data/mock';
+import { useFormationStore } from '@/stores/formation.store';
+import { useNotesStore } from '@/stores/notes.store';
+import { useEtudiantStore } from '@/stores/etudiant.store';
+import { useEffect } from 'react';
 import {
   Users,
   UserCog,
@@ -47,7 +50,27 @@ const StatCard = ({ icon, label, value, sub, accent, trend }: {
   </Card>
 );
 
-const AdminDashboard = () => (
+const AdminDashboard = () => {
+  const { formations, fetchFormations } = useFormationStore();
+  const { notes, fetchNotes } = useNotesStore();
+  const { etudiants, fetchEtudiants } = useEtudiantStore();
+
+  useEffect(() => {
+    fetchFormations();
+    fetchNotes();
+    fetchEtudiants();
+  }, [fetchFormations, fetchNotes, fetchEtudiants]);
+
+  const stats = {
+    totalEtudiants: etudiants.length,
+    totalProfesseurs: 0,
+    totalFormations: formations.length,
+    totalCours: 0,
+    tauxReussite: 0,
+    moyenneGenerale: 0,
+  };
+
+  return (
   <div className="space-y-8 animate-fade-in">
     <div className="page-header text-primary-foreground">
       <div className="relative z-10">
@@ -81,11 +104,11 @@ const AdminDashboard = () => (
                 <div className="w-2 h-8 rounded-full bg-gold-gradient" />
                 <div>
                   <p className="font-semibold text-sm text-foreground group-hover:text-accent transition-colors">{f.nom}</p>
-                  <p className="text-xs text-muted-foreground">{f.departement}</p>
+                  <p className="text-xs text-muted-foreground">{f.description?.substring(0, 50)}...</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-foreground">{f.nbEtudiants}</p>
+                <p className="text-lg font-bold text-foreground">{f.etudiants?.length || 0}</p>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">étudiants</p>
               </div>
             </div>
@@ -107,20 +130,19 @@ const AdminDashboard = () => (
             <div key={n.id} className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
-                  n.note >= 10 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                  n.valeur >= 10 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
                 }`}>
-                  {n.note}
+                  {n.valeur}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-foreground">{n.etudiantNom}</p>
-                  <p className="text-xs text-muted-foreground">{n.coursNom}</p>
+                  <p className="font-semibold text-sm text-foreground">
+                    {n.Etudiant ? `${n.Etudiant.prenom} ${n.Etudiant.nom}` : 'N/A'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{n.Cours?.nom || 'N/A'}</p>
                 </div>
               </div>
-              <Badge
-                variant={n.validee ? 'default' : 'secondary'}
-                className={n.validee ? 'bg-success text-success-foreground' : 'bg-warning/10 text-warning border-warning/20'}
-              >
-                {n.validee ? '✓ Validée' : '⏳ En attente'}
+              <Badge className="bg-success text-success-foreground">
+                ✓ Saisie
               </Badge>
             </div>
           ))}
@@ -129,66 +151,76 @@ const AdminDashboard = () => (
     </div>
   </div>
 );
+};
 
 const RespFormationDashboard = () => {
   const { user } = useAuth();
+  const { formations, fetchFormations } = useFormationStore();
+  const { notes, fetchNotes } = useNotesStore();
+  const { etudiants, fetchEtudiants } = useEtudiantStore();
+
+  useEffect(() => {
+    fetchFormations();
+    fetchNotes();
+    fetchEtudiants();
+  }, [fetchFormations, fetchNotes, fetchEtudiants]);
+
   const formation = formations.find(f => f.id === user?.formationId) || formations[0];
-  const formationNotes = notes.filter(n => {
-    const etud = etudiants.find(e => e.id === n.etudiantId);
-    return etud?.formationId === formation.id;
-  });
-  const pendingNotes = formationNotes.filter(n => !n.validee);
+  const formationEtudiants = etudiants.filter(e => e.formationId === formation?.id);
+  const formationEtudiantIds = formationEtudiants.map(e => e.id);
+  const formationNotes = notes.filter(n => formationEtudiantIds.includes(n.etudiantId));
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="page-header text-primary-foreground">
         <div className="relative z-10">
           <p className="text-sm opacity-70 mb-1">Ma Formation</p>
-          <h1 className="text-3xl font-display font-bold">{formation.nom}</h1>
-          <p className="mt-1 opacity-80 text-sm">{formation.departement}</p>
+          <h1 className="text-3xl font-display font-bold">{formation?.nom || 'Ma Formation'}</h1>
+          <p className="mt-1 opacity-80 text-sm">{formation?.description?.substring(0, 60)}...</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-        <StatCard icon={<Users className="w-5 h-5" />} label="Étudiants" value={formation.nbEtudiants} />
-        <StatCard icon={<UserCog className="w-5 h-5" />} label="Professeurs" value={formation.nbProfesseurs} />
-        <StatCard icon={<Clock className="w-5 h-5" />} label="Notes en attente" value={pendingNotes.length} accent />
+        <StatCard icon={<Users className="w-5 h-5" />} label="Étudiants" value={formationEtudiants.length} />
+        <StatCard icon={<UserCog className="w-5 h-5" />} label="Professeurs" value={0} />
+        <StatCard icon={<FileCheck className="w-5 h-5" />} label="Notes" value={formationNotes.length} accent />
         <StatCard icon={<Award className="w-5 h-5" />} label="Taux de Réussite" value="74%" />
       </div>
 
       <Card className="shadow-card card-hover-lift">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
-              <Clock className="w-4 h-4 text-warning" />
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+              <FileCheck className="w-4 h-4 text-accent" />
             </div>
-            Notes à Valider
-            {pendingNotes.length > 0 && (
-              <Badge className="bg-warning/10 text-warning border-warning/20 ml-2">{pendingNotes.length}</Badge>
-            )}
+            Notes Récentes
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {pendingNotes.length === 0 ? (
+          {formationNotes.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
-                <FileCheck className="w-8 h-8 text-success" />
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                <FileCheck className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground text-sm">Aucune note en attente de validation 🎉</p>
+              <p className="text-muted-foreground text-sm">Aucune note pour le moment</p>
             </div>
           ) : (
-            pendingNotes.map((n) => (
-              <div key={n.id} className="flex items-center justify-between p-3.5 rounded-xl bg-warning/5 border border-warning/15 hover:border-warning/30 transition-colors">
+            formationNotes.slice(0, 5).map((n) => (
+              <div key={n.id} className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center text-sm font-bold text-warning">
-                    {n.note}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
+                    n.valeur >= 10 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                  }`}>
+                    {n.valeur}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-foreground">{n.etudiantNom}</p>
-                    <p className="text-xs text-muted-foreground">{n.coursNom} — {n.dateCreation}</p>
+                    <p className="font-semibold text-sm text-foreground">
+                      {n.Etudiant ? `${n.Etudiant.prenom} ${n.Etudiant.nom}` : 'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{n.Cours?.nom || 'N/A'}</p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">En attente</Badge>
+                <Badge className="bg-success/10 text-success border-success/20">Saisie</Badge>
               </div>
             ))
           )}
@@ -255,9 +287,15 @@ const ProfesseurDashboard = () => (
 
 const EtudiantDashboard = () => {
   const { user } = useAuth();
+  const { notes, fetchNotes } = useNotesStore();
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
+
   const mesNotes = notes.filter(n => n.etudiantId === user?.id);
   const moyenne = mesNotes.length > 0
-    ? (mesNotes.reduce((acc, n) => acc + n.note, 0) / mesNotes.length).toFixed(1)
+    ? (mesNotes.reduce((acc, n) => acc + n.valeur, 0) / mesNotes.length).toFixed(1)
     : '—';
 
   return (
@@ -273,7 +311,7 @@ const EtudiantDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
         <StatCard icon={<FileCheck className="w-5 h-5" />} label="Notes Disponibles" value={mesNotes.length} />
         <StatCard icon={<Award className="w-5 h-5" />} label="Moyenne Générale" value={moyenne} accent />
-        <StatCard icon={<TrendingUp className="w-5 h-5" />} label="Crédits Validés" value="18/30" />
+        <StatCard icon={<TrendingUp className="w-5 h-5" />} label="Coefficients" value="—" />
       </div>
 
       <Card className="shadow-card card-hover-lift">
@@ -290,21 +328,19 @@ const EtudiantDashboard = () => {
             <div key={n.id} className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors">
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${
-                  n.note >= 10 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                  n.valeur >= 10 ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
                 }`}>
-                  {n.note}
+                  {n.valeur}
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-foreground">{n.coursNom}</p>
-                  <p className="text-xs text-muted-foreground">{n.dateCreation}</p>
+                  <p className="font-semibold text-sm text-foreground">{n.Cours?.nom || 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">{n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : '—'}</p>
                 </div>
               </div>
-              {n.validee && (
-                <Badge className="bg-success text-success-foreground gap-1">
-                  <FileCheck className="w-3 h-3" />
-                  Validée
-                </Badge>
-              )}
+              <Badge className="bg-success text-success-foreground gap-1">
+                <FileCheck className="w-3 h-3" />
+                Saisie
+              </Badge>
             </div>
           ))}
         </CardContent>

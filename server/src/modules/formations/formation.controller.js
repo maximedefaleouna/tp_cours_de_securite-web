@@ -54,7 +54,7 @@ export default class FormationController {
     try {
       const data = schema.validateUpdate({
         ...req.body,
-        updatedById: req.user.id,
+        updatedById: req.user.userId,
       });
       const formation = await service.updateFormation(req.params.id, data);
       res.json({ success: true, data: formation });
@@ -67,9 +67,9 @@ export default class FormationController {
   // Supprimer une formation (soft delete)
   static async delete(req, res) {
     try {
-      await service.deleteFormation(req.params.id, req.user.id);
+      await service.deleteFormation(req.params.id, req.user.userId);
       res
-        .status(204)
+        .status(200)
         .json({ success: true, message: "formation supprimé avec succes" });
     } catch (err) {
       if (err instanceof AppError) return err.handleResponse(res);
