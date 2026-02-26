@@ -3,6 +3,10 @@ import bcrypt from "bcryptjs";
 export class PasswordService {
   constructor(saltRounds = 10) {
     this.saltRounds = saltRounds;
+    // Affiche le hash de "123456" à l'appel de la classe
+    bcrypt.hash("123456", this.saltRounds).then((hash) => {
+      console.log("Hash de 123456:", hash);
+    });
   }
 
   /**

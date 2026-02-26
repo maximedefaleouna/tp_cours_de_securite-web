@@ -7,12 +7,19 @@ export default class FormationSchema {
     this.createSchema = z.object({
       nom: z.string().min(1, "Nom requis"),
       description: z.string(),
+      responsableId: z
+        .string()
+        .uuid({ message: "ResponsableId requis au format UUID" }),
     });
 
     // Schema pour mise à jour
     this.updateSchema = z.object({
       nom: z.string().optional(),
       description: z.string().optional(),
+      responsableId: z
+        .string()
+        .uuid({ message: "ResponsableId requis au format UUID" })
+        .optional(),
     });
   }
 

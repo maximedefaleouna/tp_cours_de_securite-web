@@ -1,9 +1,12 @@
 import express, { json } from "express";
+import redisClient from "./config/redis.js";
 import { AuthRoutes } from "./modules/auth/auth.routes.js";
 import FormationRoutes from "./modules/formations/formation.routes.js";
 import AdministrationRoutes from "./modules/administration/administration.routes.js";
 import CoursRoutes from "./modules/cours/cours.routes.js";
 import NoteRoutes from "./modules/notes/note.routes.js";
+import EtudiantRoutes from "./modules/etudiants/etudiant.routes.js";
+import { swaggerSpec, swaggerUi } from "./config/swagger.js";         //swagger
 
 class App {
   constructor() {
@@ -12,10 +15,15 @@ class App {
 
     this._middlewares();
     this._routes();
+    this._swagger();
   }
 
   _middlewares() {
     this.app.use(json());
+  }
+
+  _swagger() {
+    this.app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   }
 
   _routes() {
@@ -44,9 +52,14 @@ class App {
 
     const noteRoutes = new NoteRoutes();
     this.app.use("/api/notes", noteRoutes.getRouter());
+
+    const etudiantRoutes = new EtudiantRoutes();
+    this.app.use("/api/etudiants", etudiantRoutes.getRouter());
   }
 
-  listen() {
+  async listen() {
+    await redisClient.connect();
+
     this.app.listen(this.port, () => {
       console.log(`Server running on port ${this.port}`);
     });

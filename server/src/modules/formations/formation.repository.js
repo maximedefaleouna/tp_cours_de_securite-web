@@ -5,17 +5,26 @@ export default class FormationRepository {
     this.prisma = prisma;
   }
 
+  // Crée une formation ET lie à un seul responsable via FormationResponsable
   async create(data) {
     return this.prisma.formation.create({
       data: {
         nom: data.nom,
         description: data.description,
-        createdBy: {
-          connect: { id: data.createdById },
-        },
-        updatedBy: {
-          connect: { id: data.updatedById },
-        },
+        createdById: data.createdById,
+        updatedById: data.updatedById,
+        formationResponsables: data.responsableId
+          ? {
+              create: {
+                responsableId: data.responsableId,
+                createdById: data.createdById,
+                updatedById: data.createdById,
+              },
+            }
+          : undefined,
+      },
+      include: {
+        formationResponsables: true, // On ne fait pas de include avec 'responsable', seulement le lien intermédiaire
       },
     });
   }
@@ -25,7 +34,10 @@ export default class FormationRepository {
       where: { isDeleted: false },
       include: {
         cours: true,
-        formationResponsables: true,
+        formationResponsables: {
+          // Remove unknown field 'responsable' and just include as array of objects
+          // To stay consistent with other calls, you might want to use an empty include or include nothing extra.
+        },
         etudiants: true,
       },
     });
@@ -36,14 +48,40 @@ export default class FormationRepository {
       where: { id, isDeleted: false },
       include: {
         cours: true,
-        formationResponsables: true,
+        formationResponsables: {
+          include: { responsable: true },
+        },
         etudiants: true,
       },
     });
   }
 
   async update(id, data) {
-    return this.prisma.formation.update({ where: { id }, data });
+    const updateData = {
+      nom: data.nom,
+      description: data.description,
+      updatedById: data.updatedById,
+    };
+
+    // Si responsable à mettre à jour, on supprime l'ancien et lie le nouveau
+    if (data.responsableId) {
+      updateData.formationResponsables = {
+        deleteMany: {}, // remove any existing responsible
+        create: {
+          responsableId: data.responsableId,
+        },
+      };
+    }
+
+    return this.prisma.formation.update({
+      where: { id },
+      data: updateData,
+      include: {
+        formationResponsables: {
+          include: { responsable: true },
+        },
+      },
+    });
   }
 
   async softDelete(id, updatedById) {
