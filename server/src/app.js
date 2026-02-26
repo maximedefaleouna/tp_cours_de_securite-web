@@ -25,7 +25,7 @@ class App {
     this.app.use(corsMiddleware);
 
     // General rate limiting
-    this.app.use(apiLimiter);
+    // this.app.use(apiLimiter);
 
     this.app.use(json());
   }

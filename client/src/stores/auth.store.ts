@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { authService, LoginAdminRequest, User } from "@/services/auth.service";
 import { ApiError } from "@/lib/api";
+import type { AppRole } from "@/types";
 
 interface AuthState {
   user: User | null;
@@ -13,6 +14,7 @@ interface AuthState {
   logout: () => void;
   initializeAuth: () => void;
   clearError: () => void;
+  loadUserProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -33,6 +35,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Store tokens
         authService.setTokens(tokens.accessToken, tokens.refreshToken);
 
+        // Determine role based on isAdmin flag
+        // Admin gets full access, others start as professeur and get upgraded based on assignments
+        let role: AppRole = admin.isAdmin ? "admin" : "professeur";
+
         // Create user object
         const user: User = {
           id: admin.id,
@@ -40,7 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           prenom: admin.prenom,
           email: admin.email,
           matricule: admin.matricule,
-          role: admin.isAdmin ? "admin" : "resp_formation",
+          role,
           isAdmin: admin.isAdmin,
         };
 
@@ -53,6 +59,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isLoading: false,
           error: null,
         });
+
+        // Load extended profile to determine if user is also a responsable
+        const profileResponse = await authService.getMe();
+        if (profileResponse.success) {
+          const hasFormations = (profileResponse.data.formationsResponsable?.length || 0) > 0;
+          const hasCours = (profileResponse.data.cours?.length || 0) > 0;
+
+          // Upgrade role to resp_formation if they have formations
+          if (hasFormations && !admin.isAdmin) {
+            role = "resp_formation";
+          }
+
+          const updatedUser: User = {
+            ...user,
+            role,
+            formationsResponsable: profileResponse.data.formationsResponsable,
+            cours: profileResponse.data.cours,
+          };
+
+          authService.setUser(updatedUser);
+          set({ user: updatedUser });
+        }
 
         return true;
       }
@@ -85,7 +113,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  initializeAuth: () => {
+  initializeAuth: async () => {
     const user = authService.getUser();
     const isAuthenticated = authService.isAuthenticated();
 
@@ -93,9 +121,58 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user,
       isAuthenticated,
     });
+
+    // If authenticated, load extended profile
+    if (isAuthenticated && user) {
+      try {
+        const response = await authService.getMe();
+        if (response.success) {
+          const hasFormations = (response.data.formationsResponsable?.length || 0) > 0;
+          const hasCours = (response.data.cours?.length || 0) > 0;
+
+          // Determine proper role
+          let role: AppRole = user.isAdmin ? "admin" : "professeur";
+          if (hasFormations && !user.isAdmin) {
+            role = "resp_formation";
+          }
+
+          const updatedUser: User = {
+            ...user,
+            role,
+            formationsResponsable: response.data.formationsResponsable,
+            cours: response.data.cours,
+          };
+
+          authService.setUser(updatedUser);
+          set({ user: updatedUser });
+        }
+      } catch (error) {
+        console.error("Failed to load user profile on init:", error);
+      }
+    }
   },
 
   clearError: () => {
     set({ error: null });
+  },
+
+  loadUserProfile: async () => {
+    try {
+      const response = await authService.getMe();
+      if (response.success) {
+        const currentUser = get().user;
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            formationsResponsable: response.data.formationsResponsable,
+            cours: response.data.cours,
+          };
+          authService.setUser(updatedUser);
+          set({ user: updatedUser });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load user profile:", error);
+    }
   },
 }));

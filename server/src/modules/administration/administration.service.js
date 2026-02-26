@@ -96,4 +96,40 @@ export default class AdministrationService {
 
     return this.repo.update(userId, { password: hashed });
   }
+
+  async getMe(userId) {
+    console.log("DEBUG getMe: userId =", userId);
+    const admin = await this.repo.findById(userId);
+    if (!admin) throw new AppError("Utilisateur introuvable", 404);
+
+    // Get formations where this user is responsable
+    const formationsResponsable = await this.repo.findFormationsByResponsable(userId);
+    console.log("DEBUG getMe: formationsResponsable =", formationsResponsable.length);
+
+    // Get courses taught by this professor
+    const coursAsProfesseur = await this.repo.findCoursByProfesseur(userId);
+    console.log("DEBUG getMe: coursAsProfesseur =", coursAsProfesseur.length);
+
+    // Get all courses from formations where this user is responsable
+    const formationIds = formationsResponsable.map(f => f.id);
+    console.log("DEBUG getMe: formationIds =", formationIds);
+    const coursFromFormations = formationIds.length > 0
+      ? await this.repo.findCoursByFormationIds(formationIds)
+      : [];
+    console.log("DEBUG getMe: coursFromFormations =", coursFromFormations.length);
+
+    // Merge courses (as professor + from managed formations) and remove duplicates
+    const allCoursMap = new Map();
+    [...coursAsProfesseur, ...coursFromFormations].forEach(c => {
+      allCoursMap.set(c.id, c);
+    });
+    const cours = Array.from(allCoursMap.values());
+    console.log("DEBUG getMe: total cours =", cours.length);
+
+    return {
+      ...admin,
+      formationsResponsable,
+      cours,
+    };
+  }
 }

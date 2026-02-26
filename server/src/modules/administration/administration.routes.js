@@ -76,7 +76,25 @@ export default class AdministrationRoutes {
      *         description: Accès refusé.
      */
     this.router.get("/", autorisation.isAdmin(), controller.getAll);
-
+    
+    /**
+     * @openapi
+     * /api/administration/me:
+     *   get:
+     *     tags:
+     *       - Administration
+     *     summary: Obtenir le profil de l'utilisateur connecté
+     *     description: Récupère les informations de l'administrateur connecté avec ses cours et formations.
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Profil de l'utilisateur.
+     *       401:
+     *         description: Non autorisé.
+     */
+    this.router.get("/me", controller.getMe);
+    
     /**
      * @openapi
      * /api/administration/{id}:
@@ -84,7 +102,7 @@ export default class AdministrationRoutes {
      *     tags:
      *       - Administration
      *     summary: Obtenir un administrateur par ID
-     *     description: Récupère les informations d’un administrateur par son ID (réservé aux utilisateurs admin).
+     *     description: Récupère les informations d'un administrateur par son ID (réservé aux utilisateurs admin).
      *     security:
      *       - bearerAuth: []
      *     parameters:

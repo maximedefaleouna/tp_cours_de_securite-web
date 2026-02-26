@@ -33,4 +33,47 @@ export default class AdministrationRepository {
       data: { isDeleted: true },
     });
   }
+
+  async findFormationsByResponsable(responsableId) {
+    return this.prisma.formation.findMany({
+      where: {
+        isDeleted: false,
+        formationResponsables: {
+          some: {
+            responsableId,
+          },
+        },
+      },
+      include: {
+        cours: true,
+        etudiants: true,
+      },
+    });
+  }
+
+  async findCoursByProfesseur(professeurId) {
+    return this.prisma.cours.findMany({
+      where: {
+        isDeleted: false,
+        professeurId,
+      },
+      include: {
+        Formation: true,
+      },
+    });
+  }
+
+  async findCoursByFormationIds(formationIds) {
+    return this.prisma.cours.findMany({
+      where: {
+        isDeleted: false,
+        formationId: {
+          in: formationIds,
+        },
+      },
+      include: {
+        Formation: true,
+      },
+    });
+  }
 }

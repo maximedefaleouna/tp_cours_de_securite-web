@@ -79,8 +79,12 @@ const CoursPage = () => {
   const canEdit = isAdmin;
   const canDelete = isAdmin;
 
-  const baseCours = isRF && user?.formationId
-    ? cours.filter(c => c.formationId === user.formationId)
+  // Get formation IDs that the responsable manages
+  const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
+
+  // Filter courses: admin sees all, responsable sees courses from their formations
+  const baseCours = isRF && responsableFormationIds.length > 0
+    ? cours.filter(c => responsableFormationIds.includes(c.formationId))
     : cours;
 
   const filteredByFormation = selectedFormation === 'all'
@@ -94,8 +98,9 @@ const CoursPage = () => {
       (c.professeur?.prenom && c.professeur.prenom.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const availableFormations = isRF && user?.formationId
-    ? formations.filter(f => f.id === user.formationId)
+  // Filter formations: admin sees all, responsable sees only their formations
+  const availableFormations = isRF && responsableFormationIds.length > 0
+    ? formations.filter(f => responsableFormationIds.includes(f.id))
     : formations;
 
   // Filter professors from personnel (all administration members can be professors)

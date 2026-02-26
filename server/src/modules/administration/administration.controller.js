@@ -70,4 +70,14 @@ export default class AdministrationController {
       res.status(500).json({ success: false, message: "Erreur interne" });
     }
   };
+
+  getMe = async (req, res) => {
+    try {
+      const data = await this.service.getMe(req.user.userId);
+      res.json({ success: true, data });
+    } catch (err) {
+      if (err instanceof AppError) return err.handleResponse(res);
+      res.status(500).json({ success: false, message: "Erreur interne" });
+    }
+  };
 }

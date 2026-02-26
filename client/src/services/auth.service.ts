@@ -34,6 +34,35 @@ export interface User {
   role: AppRole;
   isAdmin?: boolean;
   formationId?: string;
+  // Extended profile data (loaded after login)
+  formationsResponsable?: Formation[];
+  cours?: Cours[];
+}
+
+export interface Formation {
+  id: string;
+  nom: string;
+  description: string;
+  cours?: Cours[];
+  etudiants?: Etudiant[];
+}
+
+export interface Cours {
+  id: string;
+  nom: string;
+  description: string;
+  coefficient: number;
+  semestre: string;
+  formationId: string;
+  Formation?: Formation;
+}
+
+export interface Etudiant {
+  id: string;
+  nom: string;
+  prenom: string;
+  email: string;
+  numeroCarteEtudiant: string;
 }
 
 export const authService = {
@@ -71,5 +100,9 @@ export const authService = {
 
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem("accessToken");
+  },
+
+  getMe: async (): Promise<{ success: boolean; data: User }> => {
+    return api.get<{ success: boolean; data: User }>("/api/administration/me");
   },
 };

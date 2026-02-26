@@ -1,6 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import {
   LayoutDashboard,
   GraduationCap,
@@ -47,13 +48,39 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, logout } = useAuth();
+  const { loadUserProfile } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useEffect(() => {
+    // Load user profile to get formationsResponsable and cours
+    loadUserProfile();
+  }, [loadUserProfile]);
+
   if (!user) return null;
 
-  const filteredNav = navItems.filter((item) => item.roles.includes(user.role));
+  // Filter nav items based on role and actual permissions
+  const filteredNav = navItems.filter((item) => {
+    // Check basic role permission
+    const hasRole = item.roles.includes(user.role);
+    if (!hasRole) return false;
+
+    // Additional checks for specific permissions
+    if (item.path === '/dashboard/formations' && user.role === 'resp_formation') {
+      // Only show formations menu if user is actually a responsable of at least one formation
+      const hasFormations = (user.formationsResponsable?.length || 0) > 0;
+      return hasFormations || user.isAdmin; // Always show for admin, conditionally for resp_formation
+    }
+
+    if (item.path === '/dashboard/cours' && (user.role === 'professeur' || user.role === 'resp_formation')) {
+      // Show cours menu if user has courses (as professor or from managed formations)
+      const hasCours = (user.cours?.length || 0) > 0;
+      return hasCours || user.isAdmin; // Always show for admin, conditionally for others
+    }
+
+    return true;
+  });
 
   const roleLabels: Record<AppRole, string> = {
     admin: 'Administrateur',

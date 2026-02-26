@@ -106,7 +106,7 @@ export default class FormationService {
         throw new AppError("Échec de la suppression de la formation", 404);
       return deleted;
     } catch (err) {
-      console.log(err)
+      
       throw new AppError(
         err?.message || "Erreur lors de la suppression de la formation",
         500,
