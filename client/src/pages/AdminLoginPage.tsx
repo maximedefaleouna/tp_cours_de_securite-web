@@ -137,6 +137,15 @@ const AdminLoginPage = () => {
           </Button>
         </form>
 
+        <div className="text-center pt-2">
+          <a
+            href="/admin/forgot-password"
+            className="text-sm text-accent font-semibold hover:underline"
+          >
+            Mot de passe oublié ?
+          </a>
+        </div>
+
         {/* Footer */}
         <p className="text-xs text-center text-muted-foreground">
           © 2026 Université de Kara — Espace Administration Sécurisé

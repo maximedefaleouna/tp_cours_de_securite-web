@@ -33,8 +33,6 @@ export default class EtudiantService {
 
   async signupInit(data) {
     const existingEtudiant = await this.repo.findByEmail(data.email);
-    console.log(data);
-
     console.log(
       "Résultat de findByEmail pour",
       data.email,
@@ -57,7 +55,6 @@ export default class EtudiantService {
 
     // Générer OTP et le numéro de carte étudiant unique
     const otp = this.generateOtp();
-    console.log(otp);
     const numeroCarte = await this.generateNumeroCarte();
 
     // Payload temporaire à stocker dans Redis pour la suite de l'inscription
@@ -104,7 +101,6 @@ export default class EtudiantService {
   // Étape 3 : définir mot de passe et créer utilisateur
   async setPassword(email, password, confirmPassword) {
     const data = await this.redis.get(`signup:${email}`);
-    console.log(data);
     if (!data) throw new AppError("Demande expirée", 400);
 
     const parsed = JSON.parse(data);
@@ -114,8 +110,6 @@ export default class EtudiantService {
       throw new AppError("Les mots de passe ne correspondent pas", 400);
 
     const hashed = await this.passwordService.hash(password);
-
-    console.log(hashed);
 
     let user;
     try {
@@ -132,10 +126,6 @@ export default class EtudiantService {
       console.log(err);
       throw new AppError("Erreur lors de la création de l'utilisateur", 500);
     }
-
-    // affiche une fonction qui fait somme
-
-    console.log(user);
 
     await this.redis.del(`signup:${email}`);
 
@@ -208,7 +198,6 @@ export default class EtudiantService {
   async getAllEtudiants() {
     try {
       const etudiants = await this.repo.findAll();
-      console.log(etudiants);
       return etudiants;
     } catch (err) {
       throw new AppError("Erreur lors de la récupération des étudiants", 500);
@@ -222,7 +211,6 @@ export default class EtudiantService {
       if (!etudiant) throw new AppError("Étudiant non trouvé", 404);
       return etudiant;
     } catch (err) {
-      console.log(err);
       throw err;
     }
   }
@@ -295,7 +283,6 @@ export default class EtudiantService {
 
       return deleted;
     } catch (err) {
-      console.log(err);
       throw new AppError("Erreur lors de la suppression de l'étudiant", 500);
     }
   }
@@ -374,5 +361,54 @@ export default class EtudiantService {
         numeroCarteEtudiant: etudiant.numeroCarteEtudiant,
       }
     };
+  }
+
+  // Forgot password for etudiants
+  async forgotPassword(email) {
+    console.log("🔐 Etudiant forgot password service called with email:", email);
+    
+    // Find etudiant by email
+    const etudiant = await this.repo.findByEmail(email);
+    console.log("👤 Etudiant found:", etudiant ? "Yes" : "No");
+    
+    if (!etudiant) {
+      console.log("⚠️ No etudiant found for email, returning success for security");
+      // Don't reveal if email exists or not for security reasons
+      return { success: true, message: "Si l'email existe, un code de réinitialisation a été envoyé" };
+    }
+
+    // Generate a temporary password (6-digit code)
+    const temporaryPassword = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+    console.log("🔑 Generated temporary password code:", temporaryPassword);
+
+    // Hash the temporary password
+    const hashedPassword = await this.passwordService.hash(temporaryPassword);
+    console.log("🔒 Temporary password hashed successfully");
+
+    // Update the etudiant's password
+    const updated = await this.repo.update(etudiant.id, { password: hashedPassword });
+    console.log("✅ Temporary password updated successfully");
+
+    // Send email with the temporary password/code
+    try {
+      console.log("📧 Sending temporary password code email to etudiant...");
+      await emailService.sendTemporaryPasswordCode(
+        etudiant.email,
+        etudiant.prenom,
+        etudiant.nom,
+        temporaryPassword
+      );
+      console.log("✅ Temporary password code email sent successfully to etudiant");
+    } catch (err) {
+      console.error("❌ Email sending error:", err);
+      throw new AppError("Erreur lors de l'envoi de l'email", 500);
+    }
+
+    return { success: true, message: "Code de réinitialisation envoyé à votre email" };
+  }
+
+  // Reset password for etudiants - DEPRECATED since we now send new passwords directly
+  async resetPassword(token, newPassword) {
+    throw new AppError("Cette fonctionnalité n'est plus disponible. Un nouveau mot de passe est généré automatiquement et envoyé par email.", 400);
   }
 }

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { authService, LoginAdminRequest, User } from "@/services/auth.service";
+import { authService, User } from "@/services/auth.service";
 import { ApiError } from "@/lib/api";
 import type { AppRole } from "@/types";
 

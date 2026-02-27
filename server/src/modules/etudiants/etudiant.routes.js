@@ -542,6 +542,12 @@ export default class EtudiantRoutes {
      */
     this.router.post("/login", authLimiter, this.validateLogin, this.controller.login);
 
+    // Forgot password route for etudiants (public route)
+    this.router.post("/forgot-password", this.controller.forgotPassword);
+    
+    // Deprecated: Reset password route - now handled by forgot password generating new password
+    // this.router.post("/reset-password", this.controller.resetPassword);
+
     // Protected routes - require authentication
     this.router.use(authMiddleware);
 

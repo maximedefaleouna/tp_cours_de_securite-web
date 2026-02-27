@@ -249,6 +249,151 @@ L'équipe informatique - Université de Kara
 
     return this.sendEmail(email, subject, htmlContent, textContent);
   }
+
+  // Send password reset email
+  async sendPasswordReset(email, prenom, nom, resetToken) {
+    console.log("📧 Preparing password reset email for:", email);
+    const subject = "Réinitialisation de mot de passe - Université de Kara";
+
+    const resetUrl = `http://localhost:8080/reset-password/${resetToken}`;
+
+    const textContent = `
+Bonjour ${prenom} ${nom},
+
+Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour créer un nouveau mot de passe :
+
+${resetUrl}
+
+Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.
+
+Le lien expirera dans 1 heure.
+
+Cordialement,
+L'équipe informatique - Université de Kara
+    `;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .reset-link { background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; }
+    .warning { background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #ffc107; }
+    .footer { margin-top: 30px; text-align: center; color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Université de Kara</h1>
+      <p>Réinitialisation de mot de passe</p>
+    </div>
+    <div class="content">
+      <p>Bonjour <strong>${prenom} ${nom}</strong>,</p>
+      <p>Vous avez demandé à réinitialiser votre mot de passe.</p>
+      
+      <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
+      
+      <a href="${resetUrl}" class="reset-link">Réinitialiser mon mot de passe</a>
+      
+      <div class="warning">
+        <strong>⚠️ Important :</strong><br>
+        - Le lien expirera dans 1 heure.<br>
+        - Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.
+      </div>
+      
+      <div class="footer">
+        <p>Cordialement,<br>L'équipe informatique - Université de Kara</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    console.log("📤 Sending email with reset URL:", resetUrl);
+    const result = await this.sendEmail(email, subject, htmlContent, textContent);
+    console.log("✅ Email sent successfully:", result);
+    return result;
+  }
+
+  // Send temporary password code email
+  async sendTemporaryPasswordCode(email, prenom, nom, temporaryPassword) {
+    console.log("📧 Preparing temporary password code email for:", email);
+    const subject = "Code de réinitialisation de mot de passe - Université de Kara";
+
+    const textContent = `
+Bonjour ${prenom} ${nom},
+
+Votre mot de passe a été réinitialisé. Voici votre code temporaire à utiliser pour vous connecter :
+
+Code temporaire : ${temporaryPassword}
+
+Connectez-vous dès que possible avec ce code et changez votre mot de passe pour des raisons de sécurité.
+
+Si vous n'avez pas demandé cette réinitialisation, veuillez contacter immédiatement l'administrateur.
+
+Cordialement,
+L'équipe informatique - Université de Kara
+    `;
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .code-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff6b6b; }
+    .code { font-family: monospace; font-size: 20px; font-weight: bold; color: #ff6b6b; letter-spacing: 3px; }
+    .warning { background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #ffc107; }
+    .footer { margin-top: 30px; text-align: center; color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Université de Kara</h1>
+      <p>Code de Réinitialisation</p>
+    </div>
+    <div class="content">
+      <p>Bonjour <strong>${prenom} ${nom}</strong>,</p>
+      <p>Votre mot de passe a été réinitialisé. Voici votre code temporaire à utiliser pour vous connecter :</p>
+      
+      <div class="code-box">
+        <p><strong>Code temporaire :</strong></p>
+        <p class="code">${temporaryPassword}</p>
+      </div>
+      
+      <p><a href="http://localhost:8080/auth" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter maintenant</a></p>
+      
+      <div class="warning">
+        <strong>⚠️ Important :</strong><br>
+        - Connectez-vous dès que possible avec ce code.<br>
+        - Changez votre mot de passe immédiatement après la connexion.<br>
+        - Si vous n'avez pas demandé cette réinitialisation, contactez l'administrateur immédiatement.
+      </div>
+      
+      <div class="footer">
+        <p>Cordialement,<br>L'équipe informatique - Université de Kara</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    console.log("📤 Sending temporary password code email with code:", temporaryPassword);
+    const result = await this.sendEmail(email, subject, htmlContent, textContent);
+    console.log("✅ Temporary password code email sent successfully:", result);
+    return result;
+  }
 }
 
 export default new EmailService();

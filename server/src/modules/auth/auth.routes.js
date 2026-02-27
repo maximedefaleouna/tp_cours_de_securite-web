@@ -13,6 +13,7 @@ export class AuthRoutes {
 
   initializeRoutes() {
     const adminLoginValidator = new ValidationService(AuthSchemas.adminLogin);
+    
 
     /**
      * @openapi
@@ -83,6 +84,18 @@ export class AuthRoutes {
       adminLoginValidator.validateRequest,
       this.authController.loginAdmin,
     );
+
+    // Forgot password routes
+    this.router.post(
+      "/admin/forgot-password",
+      this.authController.forgotPassword,
+    );
+
+    // Deprecated: Reset password route - now handled by forgot password generating new password
+    // this.router.post(
+    //   "/admin/reset-password",
+    //   this.authController.resetPassword,
+    // );
   }
 
   getRouter() {

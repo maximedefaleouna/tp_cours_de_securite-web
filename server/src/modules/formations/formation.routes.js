@@ -91,6 +91,10 @@ export default class FormationRoutes {
   }
 
   _initRoutes() {
+    // Public route for getting all formations (needed for student registration)
+    this.router.get("/", FormationController.getAll);
+    
+    // Protect other routes with auth middleware
     this.router.use(authMiddleware);
 
     /**
@@ -139,8 +143,6 @@ export default class FormationRoutes {
      *   get:
      *     summary: Lister toutes les formations
      *     tags: [Formations]
-     *     security:
-     *       - bearerAuth: []
      *     responses:
      *       200:
      *         description: Liste de toutes les formations
@@ -150,14 +152,7 @@ export default class FormationRoutes {
      *               type: array
      *               items:
      *                 $ref: '#/components/schemas/Formation'
-     *       401:
-     *         description: Authentification requise ou jeton invalide
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    this.router.get("/", FormationController.getAll);
 
     /**
      * @swagger

@@ -19,6 +19,8 @@ export default class EtudiantController {
     this.deleteEtudiant = this.deleteEtudiant.bind(this);
     this.getMe = this.getMe.bind(this);
     this.changePassword = this.changePassword.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
   }
 
   async signupInit(req, res) {
@@ -47,7 +49,6 @@ export default class EtudiantController {
 
   async setPassword(req, res) {
     try {
-      console.log(req.body);
       const { email, password, confirmPassword } =
         this.schema.setPasswordSchema.parse(req.body);
       const user = await this.service.setPassword(
@@ -56,7 +57,6 @@ export default class EtudiantController {
         confirmPassword,
       );
 
-      
       res.status(201).json({ success: true, data: user });
     } catch (err) {
       if (err instanceof AppError) return err.handleResponse(res);
@@ -165,5 +165,39 @@ export default class EtudiantController {
       if (err instanceof AppError) return err.handleResponse(res);
       res.status(500).json({ success: false, message: "Erreur interne" });
     }
+  }
+
+  // Forgot password for etudiants
+  async forgotPassword(req, res) {
+    try {
+      console.log("🔧 Etudiant forgot password request received:", req.body);
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Email is required" 
+        });
+      }
+      
+      console.log("📧 Processing etudiant forgot password for email:", email);
+      const result = await this.service.forgotPassword(email);
+      console.log("✅ Etudiant forgot password service result:", result);
+      res.status(200).json(result);
+    } catch (err) {
+      console.error("❌ Etudiant forgot password error:", err);
+      if (err instanceof AppError) {
+        return err.handleResponse(res);
+      }
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  }
+
+  // Reset password for etudiants - DEPRECATED
+  async resetPassword(req, res) {
+    return res.status(400).json({
+      success: false,
+      message: "Cette fonctionnalité n'est plus disponible. Un nouveau mot de passe est généré automatiquement et envoyé par email."
+    });
   }
 }

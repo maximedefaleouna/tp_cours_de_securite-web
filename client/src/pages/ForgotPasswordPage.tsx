@@ -1,29 +1,62 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ArrowLeft, Mail, CheckCircle, Shield, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ukLogoFull from '@/assets/uk-logo-full.png';
+import { authService } from '@/services/auth.service';
+import { etudiantService } from '@/services/etudiant.service';
 
-const ForgotPasswordPage = () => {
+interface ForgotPasswordPageProps {
+  isAdmin?: boolean;
+}
+
+const ForgotPasswordPage = ({ isAdmin = false }: ForgotPasswordPageProps) => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulation d'envoi
-    await new Promise(r => setTimeout(r, 1500));
-    setLoading(false);
-    setSent(true);
+    
+    try {
+      let response;
+      if (isAdmin) {
+        response = await authService.forgotPassword({ email });
+      } else {
+        response = await etudiantService.forgotPassword({ email });
+      }
+      
+      if (response.success) {
+        setSent(true);
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la demande de réinitialisation:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getTitle = () => isAdmin ? 'Administrateur' : 'Étudiant';
+  const getSubtitle = () => 
+    isAdmin 
+      ? 'Espace Administration' 
+      : 'Espace Étudiant';
+  
+  const getReturnPath = () => isAdmin ? '/admin/login' : '/auth';
+  const getIcon = () => isAdmin ? <Shield className="w-5 h-5" /> : <User className="w-5 h-5" />;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            {getIcon()}
+            <span className="text-sm">{getSubtitle()}</span>
+          </div>
           <img src={ukLogoFull} alt="Université de Kara" className="h-12 object-contain" />
         </div>
 
@@ -34,10 +67,10 @@ const ForgotPasswordPage = () => {
             </div>
             <h1 className="text-2xl font-display font-bold text-foreground">Email envoyé !</h1>
             <p className="text-muted-foreground text-sm">
-              Si un compte est associé à <strong>{email}</strong>, vous recevrez un lien de réinitialisation.
+              Si un compte {getTitle().toLowerCase()} est associé à <strong>{email}</strong>, vous recevrez un code de réinitialisation.
             </p>
             <p className="text-xs text-muted-foreground">(Mode démo : aucun email réel n'est envoyé)</p>
-            <Link to="/auth">
+            <Link to={getReturnPath()}>
               <Button variant="outline" className="mt-4">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour à la connexion
@@ -49,7 +82,7 @@ const ForgotPasswordPage = () => {
             <div>
               <h1 className="text-2xl font-display font-bold text-foreground">Réinitialiser le mot de passe</h1>
               <p className="mt-2 text-muted-foreground text-sm">
-                Entrez votre adresse email pour recevoir un lien de réinitialisation.
+                Entrez votre adresse email pour recevoir un code de réinitialisation.
               </p>
             </div>
 
@@ -59,7 +92,7 @@ const ForgotPasswordPage = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="votre.email@univ-kara.tg"
+                  placeholder={isAdmin ? "admin@univ-kara.tg" : "votre.email@univ-kara.tg"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12"
@@ -74,7 +107,7 @@ const ForgotPasswordPage = () => {
             </form>
 
             <div className="text-center">
-              <Link to="/auth" className="text-sm text-accent font-semibold hover:underline inline-flex items-center gap-1">
+              <Link to={getReturnPath()} className="text-sm text-accent font-semibold hover:underline inline-flex items-center gap-1">
                 <ArrowLeft className="w-4 h-4" />
                 Retour à la connexion
               </Link>

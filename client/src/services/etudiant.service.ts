@@ -28,6 +28,15 @@ export interface LoginEtudiantRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 export interface CreateEtudiantRequest {
   nom: string;
   prenom: string;
@@ -62,6 +71,16 @@ export const etudiantService = {
   login: async (data: LoginEtudiantRequest): Promise<{ success: boolean; data: { tokens: { accessToken: string; refreshToken: string }; etudiant: { id: string; nom: string; prenom: string; email: string; numeroCarteEtudiant: string } } }> => {
     return api.post<{ success: boolean; data: { tokens: { accessToken: string; refreshToken: string }; etudiant: { id: string; nom: string; prenom: string; email: string; numeroCarteEtudiant: string } } }>('/api/etudiants/login', data);
   },
+
+  // Password management
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<{ success: boolean; message?: string }> => {
+    return api.post<{ success: boolean; message?: string }>('/api/etudiants/forgot-password', data);
+  },
+
+  // Reset password is no longer available - password is generated and sent via email
+  // resetPassword: async (data: ResetPasswordRequest): Promise<{ success: boolean; message?: string }> => {
+  //   return api.post<{ success: boolean; message?: string }>('/api/etudiants/reset-password', data);
+  // },
 
   // CRUD
   getAll: async (): Promise<{ success: boolean; data: Etudiant[] }> => {

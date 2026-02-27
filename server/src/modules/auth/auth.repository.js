@@ -11,6 +11,13 @@ export class AuthRepository {
     });
   }
 
+  async updatePassword(adminId, newPassword) {
+    return prisma.administration.update({
+      where: { id: adminId },
+      data: { password: newPassword },
+    });
+  }
+
   async disconnect() {
     await prisma.$disconnect();
   }

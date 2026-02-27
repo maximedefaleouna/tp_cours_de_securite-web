@@ -7,7 +7,9 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import MultiStepRegistrationPage from "./pages/MultiStepRegistrationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 import FormationsPage from "./pages/FormationsPage";
 import EtudiantsPage from "./pages/EtudiantsPage";
@@ -41,8 +43,10 @@ const AppRoutes = () => (
     <Route path="/" element={<Navigate to="/auth" replace />} />
     <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
     <Route path="/admin/login" element={<PublicRoute><AdminLoginPage /></PublicRoute>} />
-    <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+    <Route path="/register" element={<PublicRoute><MultiStepRegistrationPage /></PublicRoute>} />
     <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+    <Route path="/admin/forgot-password" element={<PublicRoute><ForgotPasswordPage isAdmin={true} /></PublicRoute>} />
+    <Route path="/reset-password/:token" element={<Navigate to="/forgot-password" replace />} />
     <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="/dashboard/formations" element={<ProtectedRoute><FormationsPage /></ProtectedRoute>} />
     <Route path="/dashboard/etudiants" element={<ProtectedRoute><EtudiantsPage /></ProtectedRoute>} />
