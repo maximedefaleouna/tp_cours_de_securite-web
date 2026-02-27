@@ -62,22 +62,28 @@ const CoursPage = () => {
     semestre: 'S1' as 'S1' | 'S2',
   });
 
+  const isAdmin = user?.role === 'admin';
+  const isRF = user?.role === 'resp_formation';
+
   const { cours, fetchCours, createCours, updateCours, deleteCours } = useCoursStore();
   const { formations, fetchFormations } = useFormationStore();
-  const { personnel, fetchPersonnel } = usePersonnelStore();
+  const { personnel, fetchPersonnel, fetchPersonnelForSelection } = usePersonnelStore();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchCours();
     fetchFormations();
-    fetchPersonnel();
-  }, [fetchCours, fetchFormations, fetchPersonnel]);
+    // Admin uses regular endpoint, responsable uses selection endpoint
+    if (isAdmin) {
+      fetchPersonnel();
+    } else {
+      fetchPersonnelForSelection();
+    }
+  }, [fetchCours, fetchFormations, fetchPersonnel, fetchPersonnelForSelection, isAdmin]);
 
-  const isAdmin = user?.role === 'admin';
-  const isRF = user?.role === 'resp_formation';
   const canCreate = isAdmin || isRF;
-  const canEdit = isAdmin;
-  const canDelete = isAdmin;
+  const canEdit = isAdmin || isRF;
+  const canDelete = isAdmin || isRF;
 
   // Get formation IDs that the responsable manages
   const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];

@@ -10,6 +10,7 @@ interface PersonnelState {
 
   // Actions
   fetchPersonnel: () => Promise<void>;
+  fetchPersonnelForSelection: () => Promise<void>;
   fetchPersonnelById: (id: string) => Promise<void>;
   createPersonnel: (data: CreatePersonnelRequest) => Promise<boolean>;
   updatePersonnel: (id: string, data: UpdatePersonnelRequest) => Promise<boolean>;
@@ -28,6 +29,21 @@ export const usePersonnelStore = create<PersonnelState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await personnelService.getAll();
+      if (response.success) {
+        set({ personnel: response.data, isLoading: false });
+      } else {
+        set({ error: "Erreur lors du chargement du personnel", isLoading: false });
+      }
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Erreur lors du chargement du personnel";
+      set({ error: message, isLoading: false });
+    }
+  },
+
+  fetchPersonnelForSelection: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await personnelService.getAllForSelection();
       if (response.success) {
         set({ personnel: response.data, isLoading: false });
       } else {

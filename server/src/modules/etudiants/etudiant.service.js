@@ -299,4 +299,80 @@ export default class EtudiantService {
       throw new AppError("Erreur lors de la suppression de l'étudiant", 500);
     }
   }
+
+  async changePassword(userId, oldPassword, newPassword) {
+    const etudiant = await this.repo.findById(userId);
+    if (!etudiant) throw new AppError("Étudiant introuvable", 404);
+
+    const isValid = await this.passwordService.compare(
+      oldPassword,
+      etudiant.password,
+    );
+
+    if (!isValid) throw new AppError("Ancien mot de passe incorrect", 400);
+
+    const hashed = await this.passwordService.hash(newPassword);
+
+    return this.repo.update(userId, { password: hashed });
+  }
+
+  async getMe(userId) {
+    const etudiant = await this.repo.findById(userId);
+    if (!etudiant) throw new AppError("Étudiant introuvable", 404);
+    return etudiant;
+  }
+
+  async login(login, password) {
+    // Find etudiant by email or numeroCarteEtudiant
+    const etudiant = await this.repo.findByLogin(login);
+    if (!etudiant) throw new AppError("Identifiants incorrects", 401);
+
+    // Verify password
+    const isValid = await this.passwordService.compare(password, etudiant.password);
+    if (!isValid) throw new AppError("Identifiants incorrects", 401);
+
+    // Return JWT token
+    return this.jwtService.generateAccessToken({ 
+      userId: etudiant.id, 
+      email: etudiant.email, 
+      role: 'etudiant' 
+    });
+  }
+
+  async loginWithTokens(login, password) {
+    // Find etudiant by email or numeroCarteEtudiant
+    const etudiant = await this.repo.findByLogin(login);
+    if (!etudiant) throw new AppError("Identifiants incorrects", 401);
+
+    // Verify password
+    const isValid = await this.passwordService.compare(password, etudiant.password);
+    if (!isValid) throw new AppError("Identifiants incorrects", 401);
+
+    // Generate tokens
+    const accessToken = this.jwtService.generateAccessToken({ 
+      userId: etudiant.id, 
+      email: etudiant.email, 
+      role: 'etudiant' 
+    });
+    
+    const refreshToken = this.jwtService.generateRefreshToken({ 
+      userId: etudiant.id, 
+      email: etudiant.email, 
+      role: 'etudiant' 
+    });
+
+    return {
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+      etudiant: {
+        id: etudiant.id,
+        nom: etudiant.nom,
+        prenom: etudiant.prenom,
+        email: etudiant.email,
+        numeroCarteEtudiant: etudiant.numeroCarteEtudiant,
+      }
+    };
+  }
 }

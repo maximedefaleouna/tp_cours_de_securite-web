@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { GraduationCap, LogIn, Eye, EyeOff, Shield } from "lucide-react";
+import { GraduationCap, LogIn, Eye, EyeOff, Shield, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import heroImage from "@/assets/hero-university.jpg";
 import ukLogoFull from "@/assets/uk-logo-full.png";
 
+
 const AuthPage = () => {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login: contextLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,22 +23,21 @@ const AuthPage = () => {
     setError("");
     setLoading(true);
 
-    const success = await login(email, password);
-    setLoading(false);
+    try {
+      // Try real etudiant login via context
+      const success = await contextLogin(login, password);
 
-    if (success) {
-      navigate("/dashboard");
-    } else {
-      setError("Email ou mot de passe incorrect. Essayez: admin@univ-kara.tg");
+      if (success) {
+        navigate("/dashboard");
+      } else {
+        setError("Identifiant ou mot de passe incorrect.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Erreur de connexion. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
     }
   };
-
-  const demoAccounts = [
-    { label: "Administrateur", email: "admin@univ-kara.tg" },
-    { label: "Resp. Formation", email: "rf@univ-kara.tg" },
-    { label: "Professeur", email: "prof@univ-kara.tg" },
-    { label: "Étudiant", email: "etudiant@univ-kara.tg" },
-  ];
 
   return (
     <div className="flex min-h-screen">
@@ -108,18 +108,24 @@ const AuthPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground font-medium">
-                Adresse email
+              <Label htmlFor="login" className="text-foreground font-medium">
+                Email ou N° Carte Étudiant
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="votre.email@univ-kara.tg"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="login"
+                  type="text"
+                  placeholder="votre.email@univ-kara.tg ou ETU20250001"
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
+                  className="h-12 pl-10"
+                  required
+                />
+                <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Vous pouvez utiliser votre email ou votre numéro de carte étudiant
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -177,24 +183,12 @@ const AuthPage = () => {
 
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground text-center">
-              Comptes de démonstration :
+              Exemples de connexion :
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              {demoAccounts.map((acc) => (
-                <button
-                  key={acc.email}
-                  onClick={() => {
-                    setEmail(acc.email);
-                    setPassword("demo123");
-                  }}
-                  className="px-3 py-2 rounded-lg border border-border bg-card text-xs text-foreground hover:border-accent hover:shadow-card transition-all text-left"
-                >
-                  <span className="font-semibold block">{acc.label}</span>
-                  <span className="text-muted-foreground truncate block">
-                    {acc.email}
-                  </span>
-                </button>
-              ))}
+            <div className="p-3 rounded-lg border border-border bg-card text-xs text-muted-foreground">
+              <p className="font-semibold text-foreground mb-1">Étudiants :</p>
+              <p>Email: votre.email@example.com</p>
+              <p>ou N° Carte: ETU20250001</p>
             </div>
           </div>
 

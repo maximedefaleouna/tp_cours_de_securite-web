@@ -1,4 +1,6 @@
 import express, { json } from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import redisClient from "./config/redis.js";
 import { corsMiddleware } from "./security/cors.js";
 import { apiLimiter, authLimiter } from "./security/rateLimit.js";
@@ -9,6 +11,9 @@ import CoursRoutes from "./modules/cours/cours.routes.js";
 import NoteRoutes from "./modules/notes/note.routes.js";
 import EtudiantRoutes from "./modules/etudiants/etudiant.routes.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class App {
   constructor() {
@@ -28,6 +33,9 @@ class App {
     // this.app.use(apiLimiter);
 
     this.app.use(json());
+    
+    // Serve static files from uploads directory
+    this.app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
   }
 
   _swagger() {

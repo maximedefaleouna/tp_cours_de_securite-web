@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Upload, FileCheck, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Upload, FileCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useEtudiantStore } from '@/stores/etudiant.store';
 import { useCoursStore } from '@/stores/cours.store';
+import { useNotesStore } from '@/stores/notes.store';
+import { ApiError } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,23 +20,40 @@ import { useToast } from '@/hooks/use-toast';
 
 const SaisieNotesPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedCours, setSelectedCours] = useState('');
   const [selectedEtudiant, setSelectedEtudiant] = useState('');
   const [note, setNote] = useState('');
   const [scanFile, setScanFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { etudiants, fetchEtudiants } = useEtudiantStore();
   const { cours, fetchCours } = useCoursStore();
+  const { createNote } = useNotesStore();
 
   useEffect(() => {
     fetchEtudiants();
     fetchCours();
   }, [fetchEtudiants, fetchCours]);
 
-  // Prof courses - empty for now until we have professor-specific API
-  const mesCours: typeof cours = [];
+  const isRF = user?.role === 'resp_formation';
+  
+  // Get formation IDs that the user manages (as responsable)
+  const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
+  
+  // Prof courses - show:
+  // 1. All courses in formations they manage (as responsable)
+  // 2. Specific courses they teach (as professor), even in other formations
+  const mesCours = cours.filter((c) => {
+    // As responsable: all courses in their formations
+    if (responsableFormationIds.includes(c.formationId)) return true;
+    // As professor: courses they specifically teach
+    if (c.professeurId === user?.id) return true;
+    return false;
+  });
+  
   const etudiantsFiltered = selectedCours
     ? etudiants.filter((e) => {
         const c = cours.find((co) => co.id === selectedCours);
@@ -59,7 +79,7 @@ const SaisieNotesPage = () => {
     if (file) setScanFile(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!scanFile) {
@@ -73,11 +93,31 @@ const SaisieNotesPage = () => {
       return;
     }
 
-    toast({ title: 'Note enregistrée', description: 'La note a été saisie avec succès. En attente de validation.' });
+    setIsSubmitting(true);
+    
+    try {
+      const success = await createNote({
+        etudiantId: selectedEtudiant,
+        coursId: selectedCours,
+        valeur: noteVal,
+        document: scanFile,
+      });
 
-    setSelectedEtudiant('');
-    setNote('');
-    setScanFile(null);
+      if (success) {
+        toast({ title: 'Note enregistrée', description: 'La note a été saisie avec succès. En attente de validation.' });
+        setSelectedEtudiant('');
+        setNote('');
+        setScanFile(null);
+        setSelectedCours('');
+      } else {
+        toast({ title: 'Erreur', description: 'Impossible d\'enregistrer la note.', variant: 'destructive' });
+      }
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Une erreur est survenue lors de l\'enregistrement.';
+      toast({ title: 'Erreur', description: message, variant: 'destructive' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -113,11 +153,25 @@ const SaisieNotesPage = () => {
                   <SelectValue placeholder="Sélectionnez un cours" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cours.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nom} ({c.semestre})
-                    </SelectItem>
-                  ))}
+                  {mesCours.length === 0 ? (
+                    <SelectItem value="" disabled>Aucun cours assigné</SelectItem>
+                  ) : (
+                    mesCours.map((c) => {
+                      // Determine access type for display
+                      const isResponsableCourse = responsableFormationIds.includes(c.formationId);
+                      const isProfCourse = c.professeurId === user?.id;
+                      let accessLabel = '';
+                      if (isResponsableCourse && isProfCourse) accessLabel = ' (Responsable & Professeur)';
+                      else if (isResponsableCourse) accessLabel = ' (Responsable)';
+                      else if (isProfCourse) accessLabel = ' (Professeur)';
+                      
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.nom} ({c.semestre}) - {c.Formation?.nom || 'Formation'}{accessLabel}
+                        </SelectItem>
+                      );
+                    })
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -200,10 +254,14 @@ const SaisieNotesPage = () => {
             <Button
               type="submit"
               className="w-full bg-hero-gradient text-primary-foreground"
-              disabled={!selectedCours || !selectedEtudiant || !note}
+              disabled={!selectedCours || !selectedEtudiant || !note || isSubmitting}
             >
-              <FileCheck className="w-4 h-4 mr-2" />
-              Enregistrer la Note
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileCheck className="w-4 h-4 mr-2" />
+              )}
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer la Note'}
             </Button>
           </form>
         </CardContent>

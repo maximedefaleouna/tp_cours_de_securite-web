@@ -85,4 +85,45 @@ export default class CoursRepository {
       where: { formationId, isDeleted: false },
     });
   }
+
+  async findByProfesseur(professeurId) {
+    return this.prisma.cours.findMany({
+      where: { professeurId, isDeleted: false },
+      include: {
+        Formation: true,
+        professeur: {
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            matricule: true,
+            isAdmin: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByFormationIds(formationIds) {
+    return this.prisma.cours.findMany({
+      where: {
+        formationId: { in: formationIds },
+        isDeleted: false,
+      },
+      include: {
+        Formation: true,
+        professeur: {
+          select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            matricule: true,
+            isAdmin: true,
+          },
+        },
+      },
+    });
+  }
 }

@@ -24,6 +24,27 @@ export default class CoursController {
     res.json({ success: true, data });
   };
 
+  getAllAccessible = async (req, res) => {
+    try {
+      const userId = req.user.userId;
+      const isAdmin = req.user.isAdmin;
+      
+      let data;
+      if (isAdmin) {
+        // Admin sees all courses
+        data = await this.service.getAllCours();
+      } else {
+        // Others see courses they teach or from formations they manage
+        data = await this.service.getAccessibleCours(userId);
+      }
+      
+      res.json({ success: true, data });
+    } catch (err) {
+      if (err instanceof AppError) return err.handleResponse(res);
+      res.status(500).json({ success: false, message: "Erreur interne" });
+    }
+  };
+
   getById = async (req, res) => {
     try {
       const data = await this.service.getCoursById(req.params.id);

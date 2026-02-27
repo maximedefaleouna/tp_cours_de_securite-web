@@ -32,14 +32,14 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Tableau de bord', icon: <LayoutDashboard className="w-5 h-5" />, path: '/dashboard', roles: ['admin', 'resp_formation', 'professeur', 'etudiant'] },
   { label: 'Formations', icon: <BookOpen className="w-5 h-5" />, path: '/dashboard/formations', roles: ['admin', 'resp_formation'] },
-  { label: 'Personnel', icon: <Briefcase className="w-5 h-5" />, path: '/dashboard/personnel', roles: ['admin', 'resp_formation'] },
+  { label: 'Personnel', icon: <Briefcase className="w-5 h-5" />, path: '/dashboard/personnel', roles: ['admin'] },
   { label: 'Étudiants', icon: <Users className="w-5 h-5" />, path: '/dashboard/etudiants', roles: ['admin', 'resp_formation'] },
   { label: 'Cours', icon: <BookOpen className="w-5 h-5" />, path: '/dashboard/cours', roles: ['admin', 'resp_formation', 'professeur'] },
-  { label: 'Saisie des Notes', icon: <ClipboardList className="w-5 h-5" />, path: '/dashboard/saisie-notes', roles: ['professeur'] },
+  { label: 'Saisie des Notes', icon: <ClipboardList className="w-5 h-5" />, path: '/dashboard/saisie-notes', roles: ['professeur', 'resp_formation'] },
   { label: 'Notes & Validation', icon: <FileText className="w-5 h-5" />, path: '/dashboard/notes', roles: ['admin', 'resp_formation', 'professeur'] },
   { label: 'Mes Notes', icon: <FileText className="w-5 h-5" />, path: '/dashboard/mes-notes', roles: ['etudiant'] },
   { label: 'Mon Relevé', icon: <GraduationCap className="w-5 h-5" />, path: '/dashboard/releve', roles: ['etudiant'] },
-  { label: 'Mon Profil', icon: <UserCog className="w-5 h-5" />, path: '/dashboard/profil', roles: ['etudiant'] },
+  { label: 'Mon Profil', icon: <UserCog className="w-5 h-5" />, path: '/dashboard/profil', roles: ['admin', 'resp_formation', 'professeur', 'etudiant'] },
 ];
 
 interface DashboardLayoutProps {

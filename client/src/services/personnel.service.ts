@@ -23,6 +23,10 @@ export const personnelService = {
     return api.get<{ success: boolean; data: Personnel[] }>("/api/administration");
   },
 
+  getAllForSelection: async (): Promise<{ success: boolean; data: Personnel[] }> => {
+    return api.get<{ success: boolean; data: Personnel[] }>("/api/administration/personnel");
+  },
+
   getById: async (id: string): Promise<{ success: boolean; data: Personnel }> => {
     return api.get<{ success: boolean; data: Personnel }>(`/api/administration/${id}`);
   },

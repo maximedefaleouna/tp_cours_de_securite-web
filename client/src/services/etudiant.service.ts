@@ -59,8 +59,8 @@ export const etudiantService = {
   },
 
   // Authentification
-  login: async (data: LoginEtudiantRequest): Promise<{ success: boolean; data: { token: string } }> => {
-    return api.post<{ success: boolean; data: { token: string } }>("/api/etudiants/login", data);
+  login: async (data: LoginEtudiantRequest): Promise<{ success: boolean; data: { tokens: { accessToken: string; refreshToken: string }; etudiant: { id: string; nom: string; prenom: string; email: string; numeroCarteEtudiant: string } } }> => {
+    return api.post<{ success: boolean; data: { tokens: { accessToken: string; refreshToken: string }; etudiant: { id: string; nom: string; prenom: string; email: string; numeroCarteEtudiant: string } } }>('/api/etudiants/login', data);
   },
 
   // CRUD

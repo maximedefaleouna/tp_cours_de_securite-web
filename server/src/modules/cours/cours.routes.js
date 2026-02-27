@@ -118,7 +118,7 @@ export default class CoursRoutes {
      * @swagger
      * /api/cours:
      *   post:
-     *     summary: Créer un nouveau cours (admin uniquement)
+     *     summary: Créer un nouveau cours (admin ou responsable de formation)
      *     tags: [Cours]
      *     security:
      *       - bearerAuth: []
@@ -140,21 +140,21 @@ export default class CoursRoutes {
      *       401:
      *         description: Authentification requise ou jeton invalide
      *       403:
-     *         description: Accès refusé (admin requis)
+     *         description: Accès refusé (admin ou responsable requis)
      */
-    this.router.post("/", autorisation.isAdmin(), controller.create);
+    this.router.post("/", autorisation.isResponsableFormation(), controller.create);
 
     /**
      * @swagger
      * /api/cours:
      *   get:
-     *     summary: Obtenir la liste de tous les cours (admin uniquement)
+     *     summary: Obtenir la liste des cours accessibles (admin voit tout, autres voient leurs cours/formations)
      *     tags: [Cours]
      *     security:
      *       - bearerAuth: []
      *     responses:
      *       200:
-     *         description: Liste de tous les cours
+     *         description: Liste des cours
      *         content:
      *           application/json:
      *             schema:
@@ -163,16 +163,14 @@ export default class CoursRoutes {
      *                 $ref: '#/components/schemas/Cours'
      *       401:
      *         description: Authentification requise ou jeton invalide
-     *       403:
-     *         description: Accès refusé (admin requis)
      */
-    this.router.get("/", autorisation.isAdmin(), controller.getAll);
+    this.router.get("/", controller.getAllAccessible);
 
     /**
      * @swagger
      * /api/cours/{id}:
      *   get:
-     *     summary: Obtenir un cours par son identifiant (admin uniquement)
+     *     summary: Obtenir un cours par son identifiant (accessible si professeur ou responsable)
      *     tags: [Cours]
      *     security:
      *       - bearerAuth: []
@@ -196,15 +194,15 @@ export default class CoursRoutes {
      *       401:
      *         description: Authentification requise ou jeton invalide
      *       403:
-     *         description: Accès refusé (admin requis)
+     *         description: Accès refusé
      */
-    this.router.get("/:id", autorisation.isAdmin(), controller.getById);
+    this.router.get("/:id", autorisation.canAccessCours(), controller.getById);
 
     /**
      * @swagger
      * /api/cours/{id}:
      *   put:
-     *     summary: Mettre à jour un cours (admin uniquement)
+     *     summary: Mettre à jour un cours (admin ou responsable de la formation)
      *     tags: [Cours]
      *     security:
      *       - bearerAuth: []
@@ -236,15 +234,15 @@ export default class CoursRoutes {
      *       401:
      *         description: Authentification requise ou jeton invalide
      *       403:
-     *         description: Accès refusé (admin requis)
+     *         description: Accès refusé
      */
-    this.router.put("/:id", autorisation.isAdmin(), controller.update);
+    this.router.put("/:id", autorisation.isResponsableFormation(), controller.update);
 
     /**
      * @swagger
      * /api/cours/{id}:
      *   delete:
-     *     summary: Supprimer un cours (admin uniquement)
+     *     summary: Supprimer un cours (admin ou responsable de la formation)
      *     tags: [Cours]
      *     security:
      *       - bearerAuth: []
@@ -264,16 +262,18 @@ export default class CoursRoutes {
      *       401:
      *         description: Authentification requise ou jeton invalide
      *       403:
-     *         description: Accès refusé (admin requis)
+     *         description: Accès refusé
      */
-    this.router.delete("/:id", autorisation.isAdmin(), controller.delete);
+    this.router.delete("/:id", autorisation.isResponsableFormation(), controller.delete);
 
     /**
      * @swagger
      * /api/cours/formation/{formationId}:
      *   get:
-     *     summary: Obtenir la liste des cours d'une formation spécifique
+     *     summary: Obtenir la liste des cours d'une formation spécifique (si responsable ou admin)
      *     tags: [Cours]
+     *     security:
+     *       - bearerAuth: []
      *     parameters:
      *       - in: path
      *         name: formationId
@@ -293,8 +293,10 @@ export default class CoursRoutes {
      *                 $ref: '#/components/schemas/Cours'
      *       404:
      *         description: Formation ou cours non trouvé(s)
+     *       403:
+     *         description: Accès refusé (responsable de formation requis)
      */
-    this.router.get("/formation/:formationId", controller.getByFormation);
+    this.router.get("/formation/:formationId", autorisation.isResponsableFormation(), controller.getByFormation);
   }
 
   getRouter() {

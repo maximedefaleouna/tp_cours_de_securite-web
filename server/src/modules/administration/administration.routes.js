@@ -76,6 +76,26 @@ export default class AdministrationRoutes {
      *         description: Accès refusé.
      */
     this.router.get("/", autorisation.isAdmin(), controller.getAll);
+
+    /**
+     * @openapi
+     * /api/administration/personnel:
+     *   get:
+     *     tags:
+     *       - Administration
+     *     summary: Obtenir la liste du personnel (pour sélection professeur)
+     *     description: Récupère la liste du personnel pour les responsables de formation.
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Liste du personnel.
+     *       401:
+     *         description: Non autorisé.
+     *       403:
+     *         description: Accès refusé.
+     */
+    this.router.get("/personnel", autorisation.hasRoles(['admin', 'resp_formation']), controller.getAll);
     
     /**
      * @openapi

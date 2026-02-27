@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, MapPin, Save, CheckCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, CheckCircle, Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { authService } from '@/services/auth.service';
+import { ApiError } from '@/lib/api';
 
 const ProfilPage = () => {
   const { user } = useAuth();
@@ -23,6 +25,17 @@ const ProfilPage = () => {
 
   const [saved, setSaved] = useState(false);
 
+  // Password change state
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   if (!user) return null;
 
   const handleChange = (field: string, value: string) => {
@@ -37,6 +50,59 @@ const ProfilPage = () => {
       title: 'Profil mis à jour',
       description: 'Vos informations ont été enregistrées avec succès.',
     });
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: 'Erreur',
+        description: 'Les nouveaux mots de passe ne correspondent pas.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: 'Erreur',
+        description: 'Le nouveau mot de passe doit contenir au moins 6 caractères.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await authService.changePassword({
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword,
+      });
+
+      if (response.success) {
+        toast({
+          title: 'Succès',
+          description: 'Votre mot de passe a été modifié avec succès.',
+        });
+        setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        toast({
+          title: 'Erreur',
+          description: response.message || 'Une erreur est survenue.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Erreur lors du changement de mot de passe';
+      toast({
+        title: 'Erreur',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -141,6 +207,91 @@ const ProfilPage = () => {
             <Button type="submit" className="w-full sm:w-auto rounded-xl h-11 gap-2">
               {saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
               {saved ? 'Enregistré' : 'Enregistrer les modifications'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Password Change Section */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Lock className="w-5 h-5" />
+            Changer le mot de passe
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handlePasswordChange} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="oldPassword">Ancien mot de passe</Label>
+              <div className="relative">
+                <Input
+                  id="oldPassword"
+                  type={showOldPassword ? 'text' : 'password'}
+                  value={passwordForm.oldPassword}
+                  onChange={e => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
+                  className="rounded-xl h-11 pr-10"
+                  placeholder="Entrez votre ancien mot de passe"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPassword(!showOldPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={passwordForm.newPassword}
+                  onChange={e => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                  className="rounded-xl h-11 pr-10"
+                  placeholder="Entrez votre nouveau mot de passe"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={passwordForm.confirmPassword}
+                  onChange={e => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="rounded-xl h-11 pr-10"
+                  placeholder="Confirmez votre nouveau mot de passe"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto rounded-xl h-11 gap-2"
+              disabled={isChangingPassword || !passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
+            >
+              <Lock className="w-4 h-4" />
+              {isChangingPassword ? 'Modification...' : 'Changer le mot de passe'}
             </Button>
           </form>
         </CardContent>

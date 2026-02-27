@@ -103,6 +103,30 @@ export const authService = {
   },
 
   getMe: async (): Promise<{ success: boolean; data: User }> => {
-    return api.get<{ success: boolean; data: User }>("/api/administration/me");
+    const user = authService.getUser();
+    if (!user) throw new Error("Utilisateur non connecté");
+
+    // Use different endpoint based on user role
+    const endpoint = user.role === 'etudiant' 
+      ? "/api/etudiants/me" 
+      : "/api/administration/me";
+
+    return api.get<{ success: boolean; data: User }>(endpoint);
+  },
+
+  changePassword: async (data: { oldPassword: string; newPassword: string }): Promise<{ success: boolean; message: string }> => {
+    const user = authService.getUser();
+    if (!user) throw new Error("Utilisateur non connecté");
+
+    // Determine the correct endpoint based on user role
+    let endpoint: string;
+    if (user.role === 'etudiant') {
+      endpoint = "/api/etudiants/change-password";
+    } else {
+      // admin, resp_formation, professeur all use administration endpoint
+      endpoint = "/api/administration/change-password";
+    }
+
+    return api.put<{ success: boolean; message: string }>(endpoint, data);
   },
 };

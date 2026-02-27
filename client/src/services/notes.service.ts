@@ -9,6 +9,7 @@ export interface CreateNoteRequest {
   coursId: string;
   valeur: number;
   documentUrl?: string;
+  document?: File;
 }
 
 export interface UpdateNoteRequest {
@@ -32,6 +33,17 @@ export const notesService = {
   },
 
   create: async (data: CreateNoteRequest): Promise<{ success: boolean; data: Note; message?: string }> => {
+    // If there's a file, use FormData
+    if (data.document) {
+      const formData = new FormData();
+      formData.append('etudiantId', data.etudiantId);
+      formData.append('coursId', data.coursId);
+      formData.append('valeur', data.valeur.toString());
+      formData.append('document', data.document);
+      
+      return api.post<{ success: boolean; data: Note; message?: string }>("/api/notes", formData);
+    }
+    
     return api.post<{ success: boolean; data: Note; message?: string }>("/api/notes", data);
   },
 

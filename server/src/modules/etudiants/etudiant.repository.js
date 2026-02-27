@@ -19,6 +19,7 @@ export default class EtudiantRepository {
 
         // Ajoute ici d'autres champs requis si besoin
       },
+      include: { Formation: true },
     });
   }
 

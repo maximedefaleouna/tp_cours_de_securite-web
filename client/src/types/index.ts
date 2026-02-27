@@ -9,6 +9,9 @@ export interface User {
   formationId?: string;
   matricule?: string;
   avatar?: string;
+  // Extended properties loaded from profile
+  formationsResponsable?: Formation[];
+  cours?: Cours[];
 }
 
 // Formation from API

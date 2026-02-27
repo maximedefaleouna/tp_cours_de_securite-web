@@ -3,6 +3,8 @@ import EtudiantController from "./etudiant.controller.js";
 import EtudiantSchema from "./etudiant.schema.js";
 import { ValidationService } from "../../middlewares/validation.middleware.js";
 import { authLimiter } from "../../security/rateLimit.js";
+import authMiddleware from "../../security/auth.js";
+import autorisation from "../../security/authorize.js";
 
 /**
  * @swagger
@@ -349,11 +351,7 @@ export default class EtudiantRoutes {
      *                 message:
      *                   type: string
      */
-    this.router.post(
-      "/",
-      this.validateSignupInit,
-      this.controller.createEtudiant,
-    );
+    // Moved to protected routes section
 
     /**
      * @swagger
@@ -377,7 +375,7 @@ export default class EtudiantRoutes {
      *                   items:
      *                     $ref: '#/components/schemas/Etudiant'
      */
-    this.router.get("/", this.controller.getAllEtudiants);
+    // Moved to protected routes section
 
     /**
      * @swagger
@@ -418,7 +416,7 @@ export default class EtudiantRoutes {
      *                   type: string
      *                   example: Étudiant non trouvé
      */
-    this.router.get("/id/:id", this.controller.getEtudiantById);
+    // Moved to protected routes section
 
     /**
      * @swagger
@@ -465,11 +463,7 @@ export default class EtudiantRoutes {
      *                 message:
      *                   type: string
      */
-    this.router.put(
-      "/:id",
-      this.validateUpdate,
-      this.controller.updateEtudiant,
-    );
+    // Moved to protected routes section
 
     /**
      * @swagger
@@ -511,7 +505,7 @@ export default class EtudiantRoutes {
      *                 message:
      *                   type: string
      */
-    this.router.delete("/delete/:id", this.controller.deleteEtudiant);
+    // Moved to protected routes section
 
     /**
      * @swagger
@@ -547,6 +541,22 @@ export default class EtudiantRoutes {
      *                   example: "Mot de passe ou login incorrect"
      */
     this.router.post("/login", authLimiter, this.validateLogin, this.controller.login);
+
+    // Protected routes - require authentication
+    this.router.use(authMiddleware);
+
+    // Get current etudiant profile
+    this.router.get("/me", this.controller.getMe);
+
+    // Change password - any authenticated etudiant can change their own password
+    this.router.put("/change-password", this.controller.changePassword);
+
+    // CRUD routes - require admin or responsable role
+    this.router.post("/", autorisation.hasRoles(['admin', 'resp_formation']), this.validateSignupInit, this.controller.createEtudiant);
+    this.router.get("/", autorisation.hasRoles(['admin', 'resp_formation']), this.controller.getAllEtudiants);
+    this.router.get("/id/:id", autorisation.hasRoles(['admin', 'resp_formation']), this.controller.getEtudiantById);
+    this.router.put("/:id", autorisation.hasRoles(['admin', 'resp_formation']), this.validateUpdate, this.controller.updateEtudiant);
+    this.router.delete("/delete/:id", autorisation.hasRoles(['admin', 'resp_formation']), this.controller.deleteEtudiant);
   }
 
   getRouter() {

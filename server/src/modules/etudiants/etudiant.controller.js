@@ -17,6 +17,8 @@ export default class EtudiantController {
     this.getEtudiantById = this.getEtudiantById.bind(this);
     this.updateEtudiant = this.updateEtudiant.bind(this);
     this.deleteEtudiant = this.deleteEtudiant.bind(this);
+    this.getMe = this.getMe.bind(this);
+    this.changePassword = this.changePassword.bind(this);
   }
 
   async signupInit(req, res) {
@@ -54,7 +56,7 @@ export default class EtudiantController {
         confirmPassword,
       );
 
-      console.log(user);
+      
       res.status(201).json({ success: true, data: user });
     } catch (err) {
       if (err instanceof AppError) return err.handleResponse(res);
@@ -134,11 +136,34 @@ export default class EtudiantController {
   async login(req, res) {
     try {
       const { login, password } = this.schema.loginSchema.parse(req.body);
-      const token = await this.service.login(login, password);
-      res.json({ success: true, data: { token } });
+      const result = await this.service.loginWithTokens(login, password);
+      res.json({ success: true, data: result });
     } catch (err) {
       if (err instanceof AppError) return err.handleResponse(res);
       res.status(401).json({ success: false, message: err.message });
+    }
+  }
+
+  // Change password for etudiant
+  async changePassword(req, res) {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      await this.service.changePassword(req.user.userId, oldPassword, newPassword);
+      res.json({ success: true, message: "Mot de passe modifié avec succès" });
+    } catch (err) {
+      if (err instanceof AppError) return err.handleResponse(res);
+      res.status(500).json({ success: false, message: "Erreur interne" });
+    }
+  }
+
+  // Get current etudiant profile
+  async getMe(req, res) {
+    try {
+      const etudiant = await this.service.getMe(req.user.userId);
+      res.json({ success: true, data: etudiant });
+    } catch (err) {
+      if (err instanceof AppError) return err.handleResponse(res);
+      res.status(500).json({ success: false, message: "Erreur interne" });
     }
   }
 }

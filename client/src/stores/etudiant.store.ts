@@ -27,13 +27,16 @@ export const useEtudiantStore = create<EtudiantState>((set, get) => ({
   fetchEtudiants: async () => {
     set({ isLoading: true, error: null });
     try {
+      console.log('DEBUG fetchEtudiants: calling API...');
       const response = await etudiantService.getAll();
+      console.log('DEBUG fetchEtudiants: response =', response);
       if (response.success) {
         set({ etudiants: response.data, isLoading: false });
       } else {
         set({ error: "Erreur lors du chargement des étudiants", isLoading: false });
       }
     } catch (error) {
+      console.log('DEBUG fetchEtudiants: error =', error);
       const message = error instanceof ApiError ? error.message : "Erreur lors du chargement des étudiants";
       set({ error: message, isLoading: false });
     }

@@ -8,13 +8,25 @@ export default class NoteController {
 
   create = async (req, res) => {
     try {
-      const data = this.schema.createSchema.parse(req.body);
+      // Handle file upload - documentUrl comes from multer
+      const documentUrl = req.file ? `/uploads/notes/${req.file.filename}` : undefined;
+      
+      console.log('DEBUG create note:', { body: req.body, documentUrl, user: req.user });
+      
+      const data = this.schema.createSchema.parse({
+        ...req.body,
+        valeur: parseFloat(req.body.valeur),
+        documentUrl
+      });
+      
+      console.log('DEBUG parsed data:', data);
+      
       const note = await this.service.createNote(data, req.user.userId);
       res.status(201).json({ success: true, data: note });
     } catch (err) {
       if (err instanceof AppError) return err.handleResponse(res);
-      console.error(err);
-      res.status(500).json({ success: false, message: "Erreur interne" });
+      console.error('DEBUG create note error:', err);
+      res.status(500).json({ success: false, message: err.message || "Erreur interne" });
     }
   };
 

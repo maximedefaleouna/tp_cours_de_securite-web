@@ -45,11 +45,16 @@ export const api = {
     return handleResponse<T>(response);
   },
 
-  post: async <T>(endpoint: string, data: unknown): Promise<T> => {
+  post: async <T>(endpoint: string, data: unknown, customHeaders?: HeadersInit): Promise<T> => {
+    const isFormData = data instanceof FormData;
+    const headers: HeadersInit = isFormData 
+      ? { Authorization: getHeaders()['Authorization'] || '' }
+      : getHeaders();
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify(data),
+      headers: customHeaders || headers,
+      body: isFormData ? data : JSON.stringify(data),
     });
     return handleResponse<T>(response);
   },

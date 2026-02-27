@@ -51,4 +51,30 @@ export default class CoursService {
   async getCoursByFormation(formationId) {
     return this.repo.findByFormation(formationId);
   }
+
+  async getAccessibleCours(userId) {
+    // Get courses where user is professor
+    const coursAsProfesseur = await this.repo.findByProfesseur(userId);
+    
+    // Get formations where user is responsable
+    const formationsResponsable = await this.repo.prisma.formationResponsable.findMany({
+      where: { responsableId: userId },
+      select: { formationId: true },
+    });
+    
+    const formationIds = formationsResponsable.map(fr => fr.formationId);
+    
+    // Get courses from those formations
+    const coursFromFormations = formationIds.length > 0
+      ? await this.repo.findByFormationIds(formationIds)
+      : [];
+    
+    // Merge and remove duplicates
+    const allCoursMap = new Map();
+    [...coursAsProfesseur, ...coursFromFormations].forEach(c => {
+      allCoursMap.set(c.id, c);
+    });
+    
+    return Array.from(allCoursMap.values());
+  }
 }

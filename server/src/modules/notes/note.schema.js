@@ -6,12 +6,12 @@ export default class NoteSchema {
       etudiantId: z.string().uuid(),
       coursId: z.string().uuid(),
       valeur: z.number(),
-      documentUrl: z.string().url().optional(),
+      documentUrl: z.string().optional(),
     });
 
     this.updateSchema = z.object({
       valeur: z.number().optional(),
-      documentUrl: z.string().url().optional(),
+      documentUrl: z.string().optional(),
     });
   }
 }

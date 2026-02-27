@@ -46,12 +46,19 @@ import {
 
 const EtudiantsPage = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const isRF = user?.role === 'resp_formation';
+  
   const [search, setSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState<any>(null);
   const [filterFormation, setFilterFormation] = useState<string>('all');
+  
+  // Get formation IDs that the responsable manages
+  const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
+  
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -61,12 +68,27 @@ const EtudiantsPage = () => {
   });
 
   const { etudiants, isLoading, error, fetchEtudiants, createEtudiant, updateEtudiant, deleteEtudiant } = useEtudiantStore();
+  
+  // DEBUG - moved after store initialization
+  console.log('DEBUG EtudiantsPage:', {
+    userRole: user?.role,
+    formationsResponsable: user?.formationsResponsable?.map(f => ({ id: f.id, nom: f.nom })),
+    responsableFormationIds,
+    totalEtudiants: etudiants.length,
+    etudiants: etudiants.map(e => ({ id: e.id, nom: e.nom, formationId: e.formationId, formation: e.Formation?.nom })),
+    accessibleEtudiants: isRF ? etudiants.filter(e => responsableFormationIds.includes(e.formationId)).map(e => ({ id: e.id, nom: e.nom, formationId: e.formationId })) : etudiants
+  });
   const { formations, fetchFormations } = useFormationStore();
+  
+  // Filter formations: admin sees all, responsable sees only their formations
+  const availableFormations = isRF && responsableFormationIds.length > 0
+    ? formations.filter(f => responsableFormationIds.includes(f.id))
+    : formations;
   const { toast } = useToast();
 
-  const canCreate = user?.role === 'admin' || user?.role === 'resp_formation';
-  const canEdit = user?.role === 'admin';
-  const canDelete = user?.role === 'admin';
+  const canCreate = isAdmin || isRF;
+  const canEdit = isAdmin || isRF;
+  const canDelete = isAdmin || isRF;
 
   useEffect(() => {
     fetchEtudiants();
@@ -83,7 +105,16 @@ const EtudiantsPage = () => {
     }
   }, [error, toast]);
 
-  const filtered = etudiants.filter(
+  // Filter students: admin sees all, responsable sees only students from their formations
+  const accessibleEtudiants = isRF && responsableFormationIds.length > 0
+    ? etudiants.filter(e => {
+        const hasAccess = responsableFormationIds.includes(e.formationId);
+        console.log('DEBUG filter:', { etudiant: e.nom, formationId: e.formationId, responsableFormationIds, hasAccess });
+        return hasAccess;
+      })
+    : etudiants;
+
+  const filtered = accessibleEtudiants.filter(
     (e) => {
       const matchSearch = e.nom.toLowerCase().includes(search.toLowerCase()) ||
         e.prenom.toLowerCase().includes(search.toLowerCase()) ||
@@ -165,7 +196,7 @@ const EtudiantsPage = () => {
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold">Étudiants</h1>
-            <p className="mt-1 opacity-80 text-sm">{etudiants.length} étudiants inscrits</p>
+            <p className="mt-1 opacity-80 text-sm">{accessibleEtudiants.length} étudiants inscrits</p>
           </div>
           {canCreate && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -229,7 +260,7 @@ const EtudiantsPage = () => {
                         <SelectValue placeholder="Choisir une formation" />
                       </SelectTrigger>
                       <SelectContent>
-                        {formations.map((f) => (
+                        {availableFormations.map((f) => (
                           <SelectItem key={f.id} value={f.id}>{f.nom}</SelectItem>
                         ))}
                       </SelectContent>
@@ -308,7 +339,7 @@ const EtudiantsPage = () => {
                   <SelectValue placeholder="Choisir une formation" />
                 </SelectTrigger>
                 <SelectContent>
-                  {formations.map((f) => (
+                  {availableFormations.map((f) => (
                     <SelectItem key={f.id} value={f.id}>{f.nom}</SelectItem>
                   ))}
                 </SelectContent>
@@ -369,14 +400,14 @@ const EtudiantsPage = () => {
             className="pl-10 h-11 rounded-xl"
           />
         </div>
-        {user?.role === 'admin' && (
+        {(isAdmin || isRF) && (
           <Select value={filterFormation} onValueChange={setFilterFormation}>
             <SelectTrigger className="w-full sm:w-[220px] h-11 rounded-xl">
               <SelectValue placeholder="Filtrer par formation" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes les formations</SelectItem>
-              {formations.map((f) => (
+              {availableFormations.map((f) => (
                 <SelectItem key={f.id} value={f.id}>{f.nom}</SelectItem>
               ))}
             </SelectContent>

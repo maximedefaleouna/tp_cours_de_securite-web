@@ -47,16 +47,22 @@ const NotesPage = () => {
   const isRF = user?.role === 'resp_formation';
   const isProf = user?.role === 'professeur';
 
+  // Get formation IDs that the responsable manages
+  const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
+
   // For admin, require formation selection first
-  const availableFormations = isAdmin ? formations : [];
+  const availableFormations = isAdmin ? formations : (isRF ? user?.formationsResponsable || [] : []);
 
   const availableCours = cours.filter((c) => {
-    if (isAdmin) {
-      // If no formation selected, show no courses (require selection first)
-      if (!selectedFormation) return false;
-      return c.formationId === selectedFormation;
+    if (isAdmin || isRF) {
+      // If no formation selected, show all courses from accessible formations
+      // If formation selected, show only courses from that formation
+      if (selectedFormation) {
+        return c.formationId === selectedFormation;
+      }
+      // No formation selected - show all courses from responsable's formations
+      return isRF ? responsableFormationIds.includes(c.formationId) : true;
     }
-    if (isRF) return c.formationId === user?.formationId;
     if (isProf) return c.professeurId === user?.id;
     return false;
   });
@@ -87,8 +93,8 @@ const NotesPage = () => {
         </div>
       </div>
 
-      {/* Formation selection for Admin */}
-      {isAdmin && (
+      {/* Formation selection for Admin and Responsable */}
+      {(isAdmin || isRF) && (
         <div className="bg-card border border-border rounded-xl p-4">
           <label className="text-sm font-medium text-foreground mb-2 block">
             Sélectionner une formation pour voir les notes
@@ -101,7 +107,7 @@ const NotesPage = () => {
               <SelectValue placeholder="Choisir une formation..." />
             </SelectTrigger>
             <SelectContent>
-              {formations.map((f) => (
+              {availableFormations.map((f) => (
                 <SelectItem key={f.id} value={f.id}>{f.nom}</SelectItem>
               ))}
             </SelectContent>

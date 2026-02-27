@@ -15,6 +15,7 @@ interface AuthState {
   initializeAuth: () => void;
   clearError: () => void;
   loadUserProfile: () => Promise<void>;
+  setUserState: (user: User, accessToken: string, refreshToken: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -175,4 +176,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.error("Failed to load user profile:", error);
     }
   },
+
+  setUserState: (user: User, accessToken: string, refreshToken: string) => {
+    // Store tokens
+    authService.setTokens(accessToken, refreshToken);
+    
+    // Store user
+    authService.setUser(user);
+
+    // Update store state
+    set({
+      user,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    });
+  },
 }));
+
+export type { User };

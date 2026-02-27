@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, ReactNode } from 'react';
 import type { AppRole } from '@/types';
 import { useAuthStore } from '@/stores/auth.store';
-import { User } from '@/services/auth.service';
+import { User, authService } from '@/services/auth.service';
+import { etudiantService } from '@/services/etudiant.service';
 
 interface AuthContextType {
   user: User | null;
@@ -33,15 +34,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     store.initializeAuth();
   }, []);
 
-  // Demo login for regular users (non-admin)
-  const login = async (email: string, _password: string): Promise<boolean> => {
-    const foundUser = mockUsers[email];
-    if (foundUser) {
+  // Login for etudiants
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Check if this is a mock user (for demo purposes)
+    const foundMockUser = mockUsers[email];
+    if (foundMockUser) {
       // For demo, we'll still use mock data for regular login
       // In production, this should call an API endpoint
       return true;
     }
-    return false;
+    
+    // For real etudiant login, use the auth store
+    try {
+      const response = await etudiantService.login({ login: email, password });
+      if (response.success && response.data) {
+        // Store tokens
+        authService.setTokens(response.data.tokens.accessToken, response.data.tokens.refreshToken);
+        
+        // Store user data
+        const user = {
+          id: response.data.etudiant.id,
+          nom: response.data.etudiant.nom,
+          prenom: response.data.etudiant.prenom,
+          email: response.data.etudiant.email,
+          matricule: response.data.etudiant.numeroCarteEtudiant,
+          role: 'etudiant' as const,
+        };
+        authService.setUser(user);
+        
+        // Update auth store
+        store.setUserState(user, response.data.tokens.accessToken, response.data.tokens.refreshToken);
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Etudiant login failed:', error);
+      return false;
+    }
   };
 
   // Admin login using real API
