@@ -19,12 +19,12 @@ import logo from "@/assets/uk-logo-full.png";
 const MultiStepRegistrationPage = () => {
   const navigate = useNavigate();
   const { formations, fetchFormations } = useFormationStore();
-  const [step, setStep] = useState(1); // 1: Personal Info, 2: OTP, 3: Password, 4: Success
+  const [step, setStep] = useState(1); // 1: Informations Personnelles, 2: OTP, 3: Mot de passe, 4: Succès
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Step 1: Personal Info
+  // Étape 1: Informations Personnelles
   const [personalInfo, setPersonalInfo] = useState({
     nom: "",
     prenom: "",
@@ -38,7 +38,7 @@ const MultiStepRegistrationPage = () => {
   const [countdown, setCountdown] = useState(0);
   const [otpSent, setOtpSent] = useState(false);
 
-  // Step 3: Password
+  // Étape 3: Mot de passe
   const [passwordInfo, setPasswordInfo] = useState({
     password: "",
     confirmPassword: "",
@@ -48,7 +48,7 @@ const MultiStepRegistrationPage = () => {
     fetchFormations();
   }, [fetchFormations]);
 
-  // Countdown timer for OTP resend
+  // Minuteur de compte à rebours pour le renvoi de l'OTP
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (countdown > 0) {

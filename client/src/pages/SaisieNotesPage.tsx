@@ -40,7 +40,7 @@ const SaisieNotesPage = () => {
 
   const isRF = user?.role === 'resp_formation';
   
-  // Get formation IDs that the user manages (as responsable)
+  // Obtenir les IDs des formations que l'utilisateur gère (en tant que responsable)
   const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
   
   // Prof courses - show:
@@ -157,7 +157,7 @@ const SaisieNotesPage = () => {
                     <SelectItem value="" disabled>Aucun cours assigné</SelectItem>
                   ) : (
                     mesCours.map((c) => {
-                      // Determine access type for display
+                      // Déterminer le type d'accès pour l'affichage
                       const isResponsableCourse = responsableFormationIds.includes(c.formationId);
                       const isProfCourse = c.professeurId === user?.id;
                       let accessLabel = '';

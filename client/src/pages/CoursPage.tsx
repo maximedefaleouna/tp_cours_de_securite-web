@@ -73,7 +73,7 @@ const CoursPage = () => {
   useEffect(() => {
     fetchCours();
     fetchFormations();
-    // Admin uses regular endpoint, responsable uses selection endpoint
+    // L'administrateur utilise le point de terminaison régulier, le responsable utilise le point de terminaison de sélection
     if (isAdmin) {
       fetchPersonnel();
     } else {
@@ -85,7 +85,7 @@ const CoursPage = () => {
   const canEdit = isAdmin || isRF;
   const canDelete = isAdmin || isRF;
 
-  // Get formation IDs that the responsable manages
+  // Obtenir les IDs des formations que le responsable gère
   const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
 
   // Filter courses: admin sees all, responsable sees courses from their formations

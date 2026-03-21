@@ -23,6 +23,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "nodemailer": "^8.0.3",
     "prisma": "^6.19.2",
     "redis": "^5.10.0",
     "swagger": "^0.7.5",

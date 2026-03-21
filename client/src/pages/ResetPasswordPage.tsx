@@ -10,7 +10,7 @@ const ResetPasswordPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
-  // Redirect to forgot password page since this functionality is deprecated
+  // Rediriger vers la page de mot de passe oublié car cette fonctionnalité est obsolète
   useEffect(() => {
     // Show a message to the user explaining the change
     alert("La fonctionnalité de réinitialisation de mot de passe a changé. Un nouveau mot de passe est maintenant généré automatiquement et envoyé par email.");

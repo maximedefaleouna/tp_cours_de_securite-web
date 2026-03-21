@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import type { Etudiant, Formation } from "@/types";
 
-// Re-export for convenience
+// Ré-export pour commodité
 export type { Etudiant };
 
 export interface SignupInitRequest {
@@ -72,12 +72,12 @@ export const etudiantService = {
     return api.post<{ success: boolean; data: { tokens: { accessToken: string; refreshToken: string }; etudiant: { id: string; nom: string; prenom: string; email: string; numeroCarteEtudiant: string } } }>('/api/etudiants/login', data);
   },
 
-  // Password management
+  // Gestion des mots de passe
   forgotPassword: async (data: ForgotPasswordRequest): Promise<{ success: boolean; message?: string }> => {
     return api.post<{ success: boolean; message?: string }>('/api/etudiants/forgot-password', data);
   },
 
-  // Reset password is no longer available - password is generated and sent via email
+  // La réinitialisation du mot de passe n'est plus disponible - le mot de passe est généré et envoyé par email
   // resetPassword: async (data: ResetPasswordRequest): Promise<{ success: boolean; message?: string }> => {
   //   return api.post<{ success: boolean; message?: string }>('/api/etudiants/reset-password', data);
   // },

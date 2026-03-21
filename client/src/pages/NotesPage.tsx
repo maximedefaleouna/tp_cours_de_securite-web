@@ -47,7 +47,7 @@ const NotesPage = () => {
   const isRF = user?.role === 'resp_formation';
   const isProf = user?.role === 'professeur';
 
-  // Get formation IDs that the responsable manages
+  // Obtenir les IDs des formations que le responsable gère
   const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
 
   // For admin, require formation selection first
@@ -55,7 +55,7 @@ const NotesPage = () => {
 
   const availableCours = cours.filter((c) => {
     if (isAdmin || isRF) {
-      // If no formation selected, show all courses from accessible formations
+      // Si aucune formation sélectionnée, afficher tous les cours des formations accessibles
       // If formation selected, show only courses from that formation
       if (selectedFormation) {
         return c.formationId === selectedFormation;

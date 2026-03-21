@@ -24,7 +24,7 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      // Try real etudiant login via context
+      // Essayer la connexion étudiante réelle via le contexte
       const success = await contextLogin(login, password);
 
       if (success) {
@@ -181,17 +181,7 @@ const AuthPage = () => {
             </Button>
           </form>
 
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground text-center">
-              Exemples de connexion :
-            </p>
-            <div className="p-3 rounded-lg border border-border bg-card text-xs text-muted-foreground">
-              <p className="font-semibold text-foreground mb-1">Étudiants :</p>
-              <p>Email: votre.email@example.com</p>
-              <p>ou N° Carte: ETU20250001</p>
-            </div>
-          </div>
-
+        
           <div className="space-y-3">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
@@ -205,13 +195,7 @@ const AuthPage = () => {
               </p>
             </div>
             <div className="text-center pt-3 border-t border-border">
-              <a
-                href="/admin/login"
-                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Shield className="w-4 h-4" />
-                <span>Espace Administration</span>
-              </a>
+             
             </div>
           </div>
         </div>

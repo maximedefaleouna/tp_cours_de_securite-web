@@ -1,12 +1,24 @@
-// Email Service - Simulates sending emails by logging to console
-// In production, replace with actual email provider (SendGrid, AWS SES, etc.)
+// Service d'Email - Envoie de vrais emails avec Nodemailer
+// En production, utilisez un fournisseur d'email réel (SendGrid, AWS SES, etc.)
+import nodemailer from 'nodemailer';
 
 class EmailService {
   constructor() {
     this.from = "Université de Kara <noreply@univ-kara.tg>";
+    
+    // Configuration du transporteur SMTP
+    this.transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT) || 587,
+      secure: false, // true pour SSL/TLS, false pour STARTTLS
+      auth: {
+        user: process.env.EMAIL_HOST_USER,
+        pass: process.env.EMAIL_HOST_PASSWORD,
+      },
+    });
   }
 
-  // Simulate sending email - logs to console instead
+  // Envoie réel d'email via SMTP
   async sendEmail(to, subject, htmlContent, textContent) {
     const emailData = {
       from: this.from,
@@ -17,29 +29,46 @@ class EmailService {
       sentAt: new Date().toISOString(),
     };
 
-    // Log to console as if we're sending an email
-    console.log("\n" + "=".repeat(60));
-    console.log("📧 EMAIL SENT (SIMULATION)");
-    console.log("=".repeat(60));
-    console.log(`From: ${emailData.from}`);
-    console.log(`To: ${emailData.to}`);
-    console.log(`Subject: ${emailData.subject}`);
-    console.log(`Sent At: ${emailData.sentAt}`);
-    console.log("-".repeat(60));
-    console.log("Content:");
-    console.log(textContent || htmlContent);
-    console.log("=".repeat(60) + "\n");
+    try {
+      // Envoi de l'email via le transporteur SMTP
+      const info = await this.transporter.sendMail({
+        from: emailData.from,
+        to: emailData.to,
+        subject: emailData.subject,
+        text: emailData.text,
+        html: emailData.html,
+      });
 
-    return {
-      success: true,
-      messageId: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    };
+      console.log("\n" + "=".repeat(60));
+      console.log("📧 EMAIL ENVOYÉ AVEC SUCCÈS");
+      console.log("=".repeat(60));
+      console.log(`De: ${emailData.from}`);
+      console.log(`À: ${emailData.to}`);
+      console.log(`Sujet: ${emailData.subject}`);
+      console.log(`Envoyé à: ${emailData.sentAt}`);
+      console.log(`Message ID: ${info.messageId}`);
+      console.log("-".repeat(60));
+      console.log("Contenu:");
+      console.log(textContent || htmlContent);
+      console.log("=".repeat(60) + "\n");
+
+      return {
+        success: true,
+        messageId: info.messageId,
+      };
+    } catch (error) {
+      console.error("❌ ÉCHEC DE L'ENVOI DE L'EMAIL:", error);
+      throw new Error(`Erreur lors de l'envoi de l'email: ${error.message}`);
+    }
   }
 
-  // Send credentials to new personnel (admin/professor)
+  // Envoyer les identifiants au nouveau personnel (admin/professeur)
   async sendPersonnelCredentials(email, prenom, nom, matricule, password, isAdmin) {
     const role = isAdmin ? "Administrateur" : "Professeur";
     const subject = `Vos identifiants de connexion - ${role} - Université de Kara`;
+
+    // Utiliser l'URL frontend depuis les variables d'environnement
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
 
     const textContent = `
 Bonjour ${prenom} ${nom},
@@ -52,7 +81,7 @@ Rôle : ${role}
 Matricule : ${matricule}
 Mot de passe temporaire : ${password}
 
-Pour vous connecter, rendez-vous sur : http://localhost:8080/admin/login
+Pour vous connecter, rendez-vous sur : ${frontendUrl}/admin/login
 
 Important :
 - Ce mot de passe est temporaire, veuillez le changer dès votre première connexion.
@@ -95,7 +124,7 @@ L'équipe informatique - Université de Kara
         <div class="credential-item"><span class="label">Mot de passe temporaire :</span> ${password}</div>
       </div>
       
-      <p><a href="http://localhost:8080/admin/login" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter</a></p>
+      <p><a href="${frontendUrl}/admin/login" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter</a></p>
       
       <div class="warning">
         <strong>⚠️ Important :</strong>
@@ -117,9 +146,12 @@ L'équipe informatique - Université de Kara
     return this.sendEmail(email, subject, htmlContent, textContent);
   }
 
-  // Send credentials to new student
+  // Envoyer les identifiants au nouvel étudiant
   async sendStudentCredentials(email, prenom, nom, numeroCarte, password) {
     const subject = "Vos identifiants de connexion - Étudiant - Université de Kara";
+
+    // Utiliser l'URL frontend depuis les variables d'environnement
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
 
     const textContent = `
 Bonjour ${prenom} ${nom},
@@ -131,7 +163,7 @@ Voici vos identifiants de connexion :
 Numéro de carte étudiant : ${numeroCarte}
 Mot de passe temporaire : ${password}
 
-Pour vous connecter, rendez-vous sur : http://localhost:8080/auth
+Pour vous connecter, rendez-vous sur : ${frontendUrl}/auth
 
 Important :
 - Ce mot de passe est temporaire, veuillez le changer dès votre première connexion.
@@ -173,7 +205,7 @@ L'équipe informatique - Université de Kara
         <div class="credential-item"><span class="label">Mot de passe temporaire :</span> ${password}</div>
       </div>
       
-      <p><a href="http://localhost:8080/auth" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter</a></p>
+      <p><a href="${frontendUrl}/auth" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter</a></p>
       
       <div class="warning">
         <strong>⚠️ Important :</strong>
@@ -195,9 +227,12 @@ L'équipe informatique - Université de Kara
     return this.sendEmail(email, subject, htmlContent, textContent);
   }
 
-  // Send OTP for student registration
+  // Envoyer OTP pour l'inscription de l'étudiant
   async sendOTP(email, prenom, nom, otp) {
     const subject = "Code de vérification - Inscription Université de Kara";
+
+    // Utiliser l'URL frontend depuis les variables d'environnement
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
 
     const textContent = `
 Bonjour ${prenom} ${nom},
@@ -207,6 +242,8 @@ Voici votre code de vérification pour compléter votre inscription :
 Code OTP : ${otp}
 
 Ce code est valable pendant 10 minutes.
+
+Connectez-vous ici : ${frontendUrl}/auth
 
 Si vous n'avez pas demandé cette inscription, veuillez ignorer cet email.
 
@@ -250,12 +287,14 @@ L'équipe informatique - Université de Kara
     return this.sendEmail(email, subject, htmlContent, textContent);
   }
 
-  // Send password reset email
+  // Envoyer l'email de réinitialisation de mot de passe
   async sendPasswordReset(email, prenom, nom, resetToken) {
     console.log("📧 Preparing password reset email for:", email);
     const subject = "Réinitialisation de mot de passe - Université de Kara";
 
-    const resetUrl = `http://localhost:8080/reset-password/${resetToken}`;
+    // Utiliser l'URL frontend depuis les variables d'environnement
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     const textContent = `
 Bonjour ${prenom} ${nom},
@@ -321,10 +360,13 @@ L'équipe informatique - Université de Kara
     return result;
   }
 
-  // Send temporary password code email
+  // Envoyer l'email de code de mot de passe temporaire
   async sendTemporaryPasswordCode(email, prenom, nom, temporaryPassword) {
     console.log("📧 Preparing temporary password code email for:", email);
     const subject = "Code de réinitialisation de mot de passe - Université de Kara";
+
+    // Utiliser l'URL frontend depuis les variables d'environnement
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
 
     const textContent = `
 Bonjour ${prenom} ${nom},
@@ -334,6 +376,8 @@ Votre mot de passe a été réinitialisé. Voici votre code temporaire à utilis
 Code temporaire : ${temporaryPassword}
 
 Connectez-vous dès que possible avec ce code et changez votre mot de passe pour des raisons de sécurité.
+
+Connectez-vous ici : ${frontendUrl}/auth
 
 Si vous n'avez pas demandé cette réinitialisation, veuillez contacter immédiatement l'administrateur.
 
@@ -371,7 +415,7 @@ L'équipe informatique - Université de Kara
         <p class="code">${temporaryPassword}</p>
       </div>
       
-      <p><a href="http://localhost:8080/auth" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter maintenant</a></p>
+      <p><a href="${frontendUrl}/auth" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Se connecter maintenant</a></p>
       
       <div class="warning">
         <strong>⚠️ Important :</strong><br>

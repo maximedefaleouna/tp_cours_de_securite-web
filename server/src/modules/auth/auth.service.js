@@ -59,29 +59,29 @@ export class AuthService {
   async forgotPassword(email) {
     console.log("🔐 Forgot password service called with email:", email);
     
-    // Find admin by email
+    // Trouver admin par email
     const admin = await this.repository.findAdminByEmailOrMatricule(email);
     console.log("👤 Admin found:", admin ? "Yes" : "No");
     
     if (!admin) {
       console.log("⚠️ No admin found for email, returning success for security");
-      // Don't reveal if email exists or not for security reasons
+      // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
       return { success: true, message: "Si l'email existe, un code de réinitialisation a été envoyé" };
     }
 
-    // Generate a temporary password (6-digit code)
+    // Générer un mot de passe temporaire (code à 6 chiffres)
     const temporaryPassword = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
     console.log("🔑 Generated temporary password code:", temporaryPassword);
 
-    // Hash the temporary password
+    // Hacher le mot de passe temporaire
     const hashedPassword = await this.passwordService.hash(temporaryPassword);
     console.log("🔒 Temporary password hashed successfully");
 
-    // Update the admin's password
+    // Mettre à jour le mot de passe de l'administrateur
     await this.repository.updatePassword(admin.id, hashedPassword);
     console.log("✅ Temporary password updated successfully");
 
-    // Send email with the temporary password/code
+    // Envoyer email avec le mot de passe/code temporaire
     try {
       console.log("📧 Sending temporary password code email...");
       await emailService.sendTemporaryPasswordCode(
@@ -114,10 +114,10 @@ export class AuthService {
       throw new AppError("Lien de réinitialisation expiré", 400);
     }
 
-    // Hash the new password
+    // Hacher le nouveau mot de passe
     const hashedPassword = await this.passwordService.hash(newPassword);
 
-    // Update the admin's password
+    // Mettre à jour le mot de passe de l'administrateur
     await this.repository.updatePassword(parsedData.userId, hashedPassword);
 
     // Delete the token from Redis

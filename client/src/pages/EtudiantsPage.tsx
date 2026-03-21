@@ -56,7 +56,7 @@ const EtudiantsPage = () => {
   const [selectedEtudiant, setSelectedEtudiant] = useState<any>(null);
   const [filterFormation, setFilterFormation] = useState<string>('all');
   
-  // Get formation IDs that the responsable manages
+  // Obtenir les IDs des formations que le responsable gère
   const responsableFormationIds = user?.formationsResponsable?.map(f => f.id) || [];
   
   const [formData, setFormData] = useState({

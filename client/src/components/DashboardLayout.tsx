@@ -54,7 +54,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Load user profile to get formationsResponsable and cours
+    // Charger le profil utilisateur pour obtenir formationsResponsable et cours
     loadUserProfile();
   }, [loadUserProfile]);
 

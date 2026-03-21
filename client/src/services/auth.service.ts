@@ -47,28 +47,28 @@ export interface GetMeResponse {
   };
 }
 
-// Storage keys
+// Clés de stockage
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 const USER_KEY = "user";
 
 export const authService = {
-  // Admin login
+  // Connexion admin
   loginAdmin: async (data: LoginAdminRequest): Promise<LoginAdminResponse> => {
     return api.post<LoginAdminResponse>("/api/auth/admin/login", data);
   },
 
-  // Get current user profile
+  // Obtenir le profil de l'utilisateur actuel
   getMe: async (): Promise<GetMeResponse> => {
     return api.get<GetMeResponse>("/api/administration/me");
   },
 
-  // Password management
+  // Gestion des mots de passe
   forgotPassword: async (data: ForgotPasswordRequest): Promise<{ success: boolean; message?: string }> => {
     return api.post<{ success: boolean; message?: string }>('/api/auth/admin/forgot-password', data);
   },
 
-  // Reset password is no longer available - password is generated and sent via email
+  // La réinitialisation du mot de passe n'est plus disponible - le mot de passe est généré et envoyé par email
   // resetPassword: async (data: ResetPasswordRequest): Promise<{ success: boolean; message?: string }> => {
   //   return api.post<{ success: boolean; message?: string }>('/api/auth/admin/reset-password', data);
   // },
@@ -77,7 +77,7 @@ export const authService = {
     return api.put<{ success: boolean; message?: string }>("/api/etudiants/change-password", data);
   },
 
-  // Token management
+  // Gestion des tokens
   setTokens: (accessToken: string, refreshToken: string): void => {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -96,7 +96,7 @@ export const authService = {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 
-  // User management
+  // Gestion des utilisateurs
   setUser: (user: User): void => {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   },
@@ -115,12 +115,12 @@ export const authService = {
     localStorage.removeItem(USER_KEY);
   },
 
-  // Authentication status
+  // Statut d'authentification
   isAuthenticated: (): boolean => {
     return !!authService.getAccessToken() && !!authService.getUser();
   },
 
-  // Logout
+  // Déconnexion
   logout: (): void => {
     authService.clearTokens();
     authService.clearUser();

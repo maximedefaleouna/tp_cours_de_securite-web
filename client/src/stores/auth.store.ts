@@ -33,14 +33,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (response.success && response.data) {
         const { admin, tokens } = response.data;
 
-        // Store tokens
+        // Stocker les tokens
         authService.setTokens(tokens.accessToken, tokens.refreshToken);
 
-        // Determine role based on isAdmin flag
-        // Admin gets full access, others start as professeur and get upgraded based on assignments
+        // Déterminer le rôle basé sur le flag isAdmin
+        // L'administrateur obtient un accès complet, les autres commencent en tant que professeur et sont promus en fonction des affectations
         let role: AppRole = admin.isAdmin ? "admin" : "professeur";
 
-        // Create user object
+        // Créer l'objet utilisateur
         const user: User = {
           id: admin.id,
           nom: admin.nom,
@@ -123,7 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated,
     });
 
-    // If authenticated, load extended profile
+    // Si authentifié, charger le profil étendu
     if (isAuthenticated && user) {
       try {
         const response = await authService.getMe();
@@ -178,7 +178,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setUserState: (user: User, accessToken: string, refreshToken: string) => {
-    // Store tokens
+    // Stocker les tokens
     authService.setTokens(accessToken, refreshToken);
     
     // Store user

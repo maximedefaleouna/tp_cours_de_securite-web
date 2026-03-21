@@ -25,7 +25,7 @@ const ProfilPage = () => {
 
   const [saved, setSaved] = useState(false);
 
-  // Password change state
+  // État pour le changement de mot de passe
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
     newPassword: '',

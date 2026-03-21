@@ -4,9 +4,7 @@ export class PasswordService {
   constructor(saltRounds = 10) {
     this.saltRounds = saltRounds;
     // Affiche le hash de "123456" à l'appel de la classe
-    bcrypt.hash("123456", this.saltRounds).then((hash) => {
-      console.log("Hash de 123456:", hash);
-    });
+  
   }
 
   /**
@@ -42,9 +40,9 @@ export class PasswordService {
   }
 
   /**
-   * Generate a random password
+   * Génère un mot de passe aléatoire
    * @param {number} length
-   * @returns {string} random password
+   * @returns {string} mot de passe aléatoire
    */
   generateRandomPassword(length = 8) {
     const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";

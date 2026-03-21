@@ -29,7 +29,7 @@ const mockUsers: Record<string, User> = {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const store = useAuthStore();
 
-  // Initialize auth state from localStorage on mount
+  // Initialiser l'état d'authentification depuis localStorage au montage
   useEffect(() => {
     store.initializeAuth();
   }, []);
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const foundMockUser = mockUsers[email];
     if (foundMockUser) {
       // For demo, we'll still use mock data for regular login
-      // In production, this should call an API endpoint
+      // Dans la production, cela devrait appeler un point de terminaison API
       return true;
     }
     

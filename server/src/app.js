@@ -26,15 +26,15 @@ class App {
   }
 
   _middlewares() {
-    // CORS configuration from security folder
+    // Configuration CORS depuis le dossier security
     this.app.use(corsMiddleware);
 
-    // General rate limiting
+    // Limitation de débit générale
     // this.app.use(apiLimiter);
 
     this.app.use(json());
     
-    // Serve static files from uploads directory
+    // Servir les fichiers statiques du répertoire uploads
     this.app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
   }
 

@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import type { Note } from "@/types";
 
-// Re-export for convenience
+// Ré-export pour commodité
 export type { Note };
 
 export interface CreateNoteRequest {
@@ -33,7 +33,7 @@ export const notesService = {
   },
 
   create: async (data: CreateNoteRequest): Promise<{ success: boolean; data: Note; message?: string }> => {
-    // If there's a file, use FormData
+    // Si un fichier est présent, utiliser FormData
     if (data.document) {
       const formData = new FormData();
       formData.append('etudiantId', data.etudiantId);

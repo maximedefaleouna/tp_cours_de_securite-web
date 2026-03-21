@@ -75,7 +75,7 @@ export default class EtudiantService {
       throw new AppError("Erreur lors de l'enregistrement temporaire", 500);
     }
 
-    // Send OTP via email
+    // Envoyer OTP via email
     await emailService.sendOTP(data.email, data.prenom, data.nom, otp);
 
     return {
@@ -132,7 +132,7 @@ export default class EtudiantService {
     return user;
   }
 
-  // CRUD operations for Etudiant
+  // Opérations CRUD pour Etudiant
 
   // Create a new etudiant (mot de passe généré aléatoirement)
   async createEtudiant(data) {
@@ -145,7 +145,7 @@ export default class EtudiantService {
     const numeroCarte = await this.generateNumeroCarte();
     data.numeroCarteEtudiant = numeroCarte;
 
-    // Generate a random temporary password
+    // Générer un mot de passe temporaire aléatoire
     const tempPassword = crypto.randomBytes(4).toString("hex").toUpperCase();
     data.password = await this.passwordService.hash(tempPassword);
 
@@ -182,7 +182,7 @@ export default class EtudiantService {
 
     const etudiant = await this.repo.create(data);
 
-    // Send email with credentials
+    // Envoyer email avec les identifiants
     await emailService.sendStudentCredentials(
       data.email,
       data.prenom,
@@ -310,15 +310,15 @@ export default class EtudiantService {
   }
 
   async login(login, password) {
-    // Find etudiant by email or numeroCarteEtudiant
+    // Trouver étudiant par email ou numeroCarteEtudiant
     const etudiant = await this.repo.findByLogin(login);
     if (!etudiant) throw new AppError("Identifiants incorrects", 401);
 
-    // Verify password
+    // Vérifier le mot de passe
     const isValid = await this.passwordService.compare(password, etudiant.password);
     if (!isValid) throw new AppError("Identifiants incorrects", 401);
 
-    // Return JWT token
+    // Retourner le token JWT
     return this.jwtService.generateAccessToken({ 
       userId: etudiant.id, 
       email: etudiant.email, 
@@ -327,11 +327,11 @@ export default class EtudiantService {
   }
 
   async loginWithTokens(login, password) {
-    // Find etudiant by email or numeroCarteEtudiant
+    // Trouver étudiant par email ou numeroCarteEtudiant
     const etudiant = await this.repo.findByLogin(login);
     if (!etudiant) throw new AppError("Identifiants incorrects", 401);
 
-    // Verify password
+    // Vérifier le mot de passe
     const isValid = await this.passwordService.compare(password, etudiant.password);
     if (!isValid) throw new AppError("Identifiants incorrects", 401);
 

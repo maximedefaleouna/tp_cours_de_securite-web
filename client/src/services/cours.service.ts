@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import type { Cours } from "@/types";
 
-// Re-export for convenience
+// Ré-export pour commodité
 export type { Cours };
 
 export interface CreateCoursRequest {

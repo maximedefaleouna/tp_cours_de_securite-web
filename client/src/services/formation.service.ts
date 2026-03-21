@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 import type { Formation } from "@/types";
 
-// Re-export for convenience
+// Ré-export pour commodité
 export type { Formation };
 
 export interface CreateFormationRequest {
