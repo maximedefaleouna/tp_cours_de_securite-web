@@ -507,10 +507,10 @@ node prisma/firstAdmin.js
 ##  Équipe
 
 **Groupe 2 - Sécurité Web**
-DEFALEOUNA Tchassama Dessoklema Maxime
-PANIZIM Pélagie 
-AKOTO Emefa Justine
-FOLLY Koffi Serge
+- DEFALEOUNA Tchassama Dessoklema Maxime
+- PANIZIM Pélagie 
+- AKOTO Emefa Justine
+- FOLLY Koffi Serge
 
 ---
 
