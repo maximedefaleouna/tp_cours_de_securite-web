@@ -2,6 +2,67 @@
 
 Projet de Sécurité Web - Groupe 2
 
+## 🚀 Démarrage Rapide
+
+**En 5 étapes simples :**
+
+### 1️⃣ Installation des dépendances
+
+```bash
+# Backend
+cd server
+npm install
+
+# Frontend
+cd ../client
+npm install
+```
+
+### 2️⃣ Configuration de la base de données
+
+```bash
+cd server
+npx prisma migrate dev
+npx prisma generate
+```
+
+### 3️⃣ Création du premier administrateur
+
+```bash
+cd server
+node prisma/firstAdmin.js
+```
+
+### 4️⃣ Lancement du backend
+
+```bash
+cd server
+npm run dev
+# Accès : http://localhost:3000
+# Swagger : http://localhost:3000/api-docs
+```
+
+### 5️⃣ Lancement du frontend (nouveau terminal)
+
+```bash
+cd client
+npm run dev
+# Accès : http://localhost:8080
+```
+
+### 🔑 Connexion
+
+**Administrateur :**
+- URL : http://localhost:8080/admin/login
+- Email : admin@gmail.com
+- Mot de passe : 123456
+
+**Étudiant :**
+- URL : http://localhost:8080/auth
+- S'inscrire avec son email
+
+---
+
 ##  Table des Matières
 
 - [Prérequis](#prérequis)
@@ -152,6 +213,8 @@ npm run dev
 
 Le serveur devrait démarrer sur : **http://localhost:3000**
 
+**📄 Documentation API (Swagger) :** http://localhost:3000/api-docs
+
 #### Terminal 2 - Frontend
 
 ```bash
@@ -257,67 +320,165 @@ Ce projet inclut plusieurs couches de sécurité :
 
 ### 3. JWT & Sessions
 - Tokens d'accès et de rafraîchissement
-- Expiration configurable
-- Stockage sécurisé
+- Expiration configurable (7 jours par défaut)
+- Stockage sécurisé dans le localStorage
 
 ### 4. Rate Limiting
 - Limitation des requêtes par IP
 - Protection contre le brute-force
-- Configuration adaptable
+- Configuration adaptable selon les endpoints
 
 ### 5. Hachage des Mots de Passe
 - Algorithme bcryptjs
-- Salt rounds configurables
+- Salt rounds : 10
 - Protection contre les attaques par rainbow table
+
+---
+
+## 📡 API & Documentation
+
+### 🔍 Documentation Swagger (OpenAPI)
+
+**URL :** http://localhost:3000/api-docs
+
+La documentation Swagger est automatiquement générée et inclut :
+- Tous les endpoints de l'API
+- Les schémas de données
+- Les exemples de requêtes/réponses
+- Les codes de statut HTTP
+- Les paramètres requis
+
+**Fonctionnalités :**
+- Tester les endpoints directement depuis l'interface
+- Voir les modèles de données
+- Comprendre les paramètres attendus
+
+### 📝 Principaux Endpoints
+
+#### Authentification
+```
+POST /api/auth/admin/login        - Connexion administrateur
+POST /api/auth/admin/forgot-password - Mot de passe oublié admin
+GET  /api/auth/me                 - Profil utilisateur actuel
+```
+
+#### Étudiants
+```
+POST   /api/etudiants/signup-init    - Inscription (étape 1)
+POST   /api/etudiants/verify-otp     - Vérification OTP
+POST   /api/etudiants/set-password   - Définition mot de passe
+POST   /api/etudiants/login          - Connexion étudiant
+POST   /api/etudiants/forgot-password - Mot de passe oublié
+GET    /api/etudiants                - Liste des étudiants
+POST   /api/etudiants                - Créer un étudiant
+PUT    /api/etudiants/:id            - Modifier un étudiant
+DELETE /api/etudiants/delete/:id     - Supprimer un étudiant
+```
+
+#### Formations
+```
+GET  /api/formation              - Liste des formations
+POST /api/formation              - Créer une formation
+PUT  /api/formation/:id          - Modifier une formation
+DELETE /api/formation/:id        - Supprimer une formation
+```
+
+#### Cours
+```
+GET  /api/cours              - Liste des cours
+POST /api/cours              - Créer un cours
+PUT  /api/cours/:id          - Modifier un cours
+DELETE /api/cours/:id        - Supprimer un cours
+```
+
+#### Notes
+```
+GET    /api/notes              - Liste des notes
+POST   /api/notes              - Créer une note (avec upload PDF)
+PUT    /api/notes/:id          - Modifier une note
+DELETE /api/notes/:id         - Supprimer une note
+POST   /api/notes/upload       - Upload massif de notes (PDF)
+```
+
+#### Administration
+```
+GET    /api/administration/me              - Profil actuel
+GET    /api/administration/personnel       - Liste du personnel
+POST   /api/administration/personnel       - Créer un personnel
+PUT    /api/administration/personnel/:id   - Modifier personnel
+DELETE /api/administration/personnel/:id   - Supprimer personnel
+```
 
 ---
 
 ##  Comptes de Test
 
-### Administrateur
-```
-Email: admin@gmail.com
-Mot de passe: 123456
-```
+###  Administrateur
 
-
-##  Dépannage
-
-### Problèmes courants
-
-#### Erreur de connexion à PostgreSQL
-```bash
-# Vérifier que PostgreSQL est en cours d'exécution
-# Windows : Services -> PostgreSQL
-
-# Vérifier les identifiants dans .env
-DATABASE_URL="postgresql://postgres:MDP@localhost:5432/securite-web"
-```
-
-#### Erreur Redis
-```bash
-# Vérifier que Redis est en cours d'exécution
-redis-cli ping
-# Doit retourner : PONG
-
-# Redémarrer Redis si nécessaire
-```
-
-#### Problème d'envoi d'email
-```bash
-# Vérifier les credentials Gmail dans .env
-# Utiliser un mot de passe d'application, pas le mot de passe normal
-# Activer l'authentification à 2 facteurs sur le compte Gmail
-```
-
-#### Migration Prisma échouée
+**Option 1 : Via le fichier firstAdmin.js**
 ```bash
 cd server
-npx prisma migrate reset
-npx prisma migrate dev
+node prisma/firstAdmin.js
 ```
 
+**Connexion :**
+- **URL :** http://localhost:8080/admin/login
+- **Email :** admin@gmail.com
+- **Mot de passe :** 123456
+
 ---
+
+### 🎓 Étudiant
+
+**Inscription automatique :**
+1. Aller sur http://localhost:8080/auth
+2. Cliquer sur "Créer un compte"
+3. Remplir le formulaire d'inscription
+4. Vérifier l'email avec le code OTP
+5. Définir le mot de passe
+
+**Ou création par l'administrateur :**
+- L'admin peut créer des comptes étudiants depuis le dashboard
+- Les identifiants sont envoyés par email automatiquement
+
+**Compte de test (après inscription) :**
+- **URL :** http://localhost:8080/auth
+- **Email :** etudiant@univ-kara.tg (ou votre email)
+- **Mot de passe :** Celui défini à l'inscription
+- **Carte étudiante :** ETU20250001 (généré automatiquement)
+
+---
+
+### Professeur
+
+**Création par l'administrateur uniquement :**
+1. L'admin se connecte au dashboard
+2. Va dans "Personnel" > "Créer un professeur"
+3. Remplit les informations
+4. Les identifiants sont envoyés par email
+
+**Connexion :**
+- **URL :** http://localhost:8080/admin/login
+- **Email :** prof@univ-kara.tg
+- **Matricule :** MAT2025001
+- **Mot de passe :** (reçu par email)
+
+---
+
+### Responsable Formation
+
+**Activation par l'administrateur :**
+- Un professeur peut être nommé responsable d'une formation
+- L'admin assigne la formation au professeur
+- Le rôle est automatiquement mis à jour
+
+**Connexion :**
+- **URL :** http://localhost:8080/admin/login
+- Mêmes identifiants que le professeur
+- Rôle automatique : "Resp. Formation"
+
+
+
 
 ##  Technologies Utilisées
 
